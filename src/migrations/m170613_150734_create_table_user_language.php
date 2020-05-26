@@ -1,13 +1,24 @@
 <?php
 
-use lispa\amos\core\migration\AmosMigrationPermissions;
-use yii\rbac\Permission;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    open20\amos\translation\migrations
+ * @category   CategoryName
+ */
 
+/**
+ * Class m170613_150734_create_table_user_language
+ */
 class m170613_150734_create_table_user_language extends \yii\db\Migration
 {
-
     const TABLE = '{{%translation_user_language_mm}}';
 
+    /**
+     * @inheritdoc
+     */
     public function safeUp()
     {
         $tableName = $this->db->getSchema()->getRawTableName(self::TABLE);
@@ -39,6 +50,9 @@ class m170613_150734_create_table_user_language extends \yii\db\Migration
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function safeDown()
     {
         try {
@@ -51,5 +65,4 @@ class m170613_150734_create_table_user_language extends \yii\db\Migration
 
         return true;
     }
-
 }

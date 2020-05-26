@@ -1,13 +1,24 @@
 <?php
 
-use lispa\amos\core\migration\AmosMigrationPermissions;
-use yii\rbac\Permission;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    open20\amos\translation\migrations
+ * @category   CategoryName
+ */
 
+/**
+ * Class m170612_150030_create_translation_conf
+ */
 class m170612_150030_create_translation_conf extends \yii\db\Migration
 {
-
     const TABLE = '{{%translation_conf}}';
 
+    /**
+     * @inheritdoc
+     */
     public function safeUp()
     {
         $tableName = $this->db->getSchema()->getRawTableName(self::TABLE);
@@ -26,7 +37,7 @@ class m170612_150030_create_translation_conf extends \yii\db\Migration
                     'updated_by' => $this->integer()->null(),
                     'deleted_by' => $this->integer()->null(),
                 ], $this->db->driverName === 'mysql' ? 'CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB' : null);
-                $this->addPrimaryKey('pk_' . $tableName . 'tr1', self::TABLE, ['namespace']);             
+                $this->addPrimaryKey('pk_' . $tableName . 'tr1', self::TABLE, ['namespace']);
             } catch (Exception $e) {
                 echo "Errore durante la creazione della tabella " . $tableName . "\n";
                 echo $e->getMessage() . "\n";
@@ -39,6 +50,9 @@ class m170612_150030_create_translation_conf extends \yii\db\Migration
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function safeDown()
     {
         try {
@@ -51,5 +65,4 @@ class m170612_150030_create_translation_conf extends \yii\db\Migration
 
         return true;
     }
-
 }

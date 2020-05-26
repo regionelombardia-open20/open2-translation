@@ -1,22 +1,32 @@
 <?php
 
-namespace lispa\amos\translation\controllers;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
 
+namespace open20\amos\translation\controllers;
+
+use open20\amos\translation\utility\TranslationUtility;
 use Yii;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\web\Cookie;
-use lispa\amos\translation\models\TranslationConf;
+use open20\amos\translation\models\TranslationConf;
 use yii\data\ActiveDataProvider;
 use yii\helpers\StringHelper;
 use yii\helpers\Inflector;
-use lispa\amos\translation\AmosTranslation;
+use open20\amos\translation\AmosTranslation;
 use yii\helpers\Url;
-use lispa\amos\admin\models\UserProfile;
-use lispa\amos\translation\models\TranslationUserLanguageMm;
+use open20\amos\admin\models\UserProfile;
+use open20\amos\translation\models\TranslationUserLanguageMm;
 use yii\web\ForbiddenHttpException;
-use lispa\amos\core\record\CachedActiveQuery;
+use open20\amos\core\record\CachedActiveQuery;
 
 /**
  * Translation controller
@@ -73,30 +83,17 @@ class DefaultController extends Controller
 
     public function actionLanguage()
     {
-
         $data    = Yii::$app->request->post();
         $dataGet = Yii::$app->request->get();
 
         if (!empty($data['language'])) {
             \Yii::$app->language = $data['language'];
+            $this->setLanguageCookie($data);
 
-            $languageCookie = new Cookie([
-                'name' => 'language',
-                'value' => $data['language'],
-                'expire' => time() + 60 * 60 * 24 * 30, // 30 days
-            ]);
-            \Yii::$app->response->cookies->add($languageCookie);
         } else if (!empty($dataGet['language'])) {
             $data = Yii::$app->request->get();
-
             \Yii::$app->language = $dataGet['language'];
-
-            $languageCookie = new Cookie([
-                'name' => 'language',
-                'value' => $dataGet['language'],
-                'expire' => time() + 60 * 60 * 24 * 30, // 30 days
-            ]);
-            \Yii::$app->response->cookies->add($languageCookie);
+            $this->setLanguageCookie($dataGet);
         }
         if (!empty($data['url'])) {
             return $this->redirect([$data['url']]);
@@ -108,6 +105,33 @@ class DefaultController extends Controller
             return $this->redirect(\yii\helpers\Url::to($referrer, true));
         }
         return $this->redirect(Url::previous());
+    }
+
+    /**
+     * @param $data
+     */
+    public function setLanguageCookie($data){
+        $module = \Yii::$app->getModule('translation');
+        if($module && $module->secureCookie){
+            $languageCookie = new Cookie([
+                'name' => 'language',
+                'value' => $data['language'],
+                'expire' => time() + 60 * 60 * 24 * 30, // 30 days
+            ]);
+            \Yii::$app->response->cookies->add($languageCookie);
+        }
+        else {
+            $domain = null;
+            if($module->enableCookieFor2LevelDomain) {
+                $host = $_SERVER['HTTP_HOST'];
+                $exploded = explode('.', $host);
+                if (count($exploded) >= 2) {
+                    $sliced = array_slice($exploded, -2, 2);
+                    $domain = '.' . $sliced[0] . '.' . $sliced[1];
+                }
+            }
+            setcookie('language', $data['language'], time() + 60 * 60 * 24 * 30, '/', $domain);
+        }
     }
 
     public function actionContents()
@@ -180,7 +204,7 @@ class DefaultController extends Controller
             $model = new TranslationUserLanguageMm();
         }
 
-        $languages = \lispa\amos\translation\models\TranslationUserLanguageMm::find()
+        $languages = \open20\amos\translation\models\TranslationUserLanguageMm::find()
             ->andWhere(['user_id' => $user_id])
             ->select('language');
         $lngs      = [];
@@ -197,6 +221,12 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     * @param $namespace
+     * @param $lang
+     * @return string
+     * @throws ForbiddenHttpException
+     */
     public function actionRecords($namespace, $lang)
     {
         $module = \Yii::$app->controller->module;
@@ -210,6 +240,7 @@ class DefaultController extends Controller
 
         $lang = $this->verifyLang($lang);
 
+        $modelSearch = new \open20\amos\translation\models\search\TranslationSearch();
         $model    = new $classNameTrans;
         $pkSource = \Yii::$app->{$module->dbSource}->getTableSchema($namespace::tableName())->primaryKey;
 
@@ -231,6 +262,7 @@ class DefaultController extends Controller
             }
         }
 
+
         $newExp = new \yii\db\Expression("$tableSource.{$pkSource[0]} as '$pkId'");
 
         $newExpLang = new \yii\db\Expression("{$tableTrans}.{$module->languageField} as 'languageField'");
@@ -249,6 +281,38 @@ class DefaultController extends Controller
         $query2 = $namespace::find()->select(array_merge([$newExp], $selectsSource));
         $query2->union($query)->groupBy($pkId);
 
+
+        // SEARCH TRANSLATION
+        /** @var  $attributesToTranslate*/
+        $attributesToTranslate = TranslationUtility::getAttributesToTranslate($namespace);
+        $modelSearch->load(\Yii::$app->request->get());
+        if(isset($modelSearch->isTranslated) && ($modelSearch->isTranslated == 1 || $modelSearch->isTranslated ==2)){
+            if($modelSearch->isTranslated == 2){
+                $isCondition = 'IS NOT';
+            }
+            else {
+                $isCondition = 'IS';
+            }
+            foreach ($attributesToTranslate as $attribute){
+                $query->andWhere([$isCondition, $tableTrans.'.'.$attribute, NULL]);
+            }
+        }
+
+        foreach ($attributesToTranslate as $attribute){
+           $value = \Yii::$app->request->get($attribute);
+           $modelSearch->attributes [$attribute] = $value;
+           if(!empty($value)){
+               $query->andWhere([ 'OR',
+                   ['LIKE', $tableSource.'.'.$attribute, $value],
+                   [
+                       'AND',
+                       ['LIKE', $tableTrans.'.'.$attribute, $value],
+                       [ $tableTrans.'.'.'language' => $lang],
+                   ]
+               ]);
+           }
+        }
+
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
@@ -257,6 +321,7 @@ class DefaultController extends Controller
                 [
                 'dataProvider' => $dataProvider,
                 'model' => $model,
+                'modelSearch' => $modelSearch,
                 'columns' => $columns,
                 'classname' => Inflector::camel2words(StringHelper::basename($namespace)),
                 'lang' => $lang,
@@ -417,7 +482,7 @@ class DefaultController extends Controller
         $module       = \Yii::$app->getModule('layout');
         if (empty($module)) {
             if (strpos($this->layout, '@') === false) {
-                $this->layout = '@vendor/lispa/amos-core/views/layouts/'.(!empty($layout) ? $layout : $this->layout);
+                $this->layout = '@vendor/open20/amos-core/views/layouts/'.(!empty($layout) ? $layout : $this->layout);
             }
             return true;
         }

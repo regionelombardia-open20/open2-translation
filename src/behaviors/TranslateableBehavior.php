@@ -1,14 +1,14 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\behaviors;
+namespace open20\amos\translation\behaviors;
 
 use Yii;
 use yii\base\Behavior;
@@ -16,7 +16,7 @@ use yii\base\Event;
 use yii\db\ActiveRecord;
 use yii\helpers\FileHelper;
 use yii\helpers\StringHelper;
-use lispa\amos\core\record\CachedActiveQuery;
+use open20\amos\core\record\CachedActiveQuery;
 
 class TranslateableBehavior extends Behavior
 {
@@ -149,6 +149,10 @@ class TranslateableBehavior extends Behavior
         }
     }
 
+    /**
+     *
+     * @return array
+     */
     private function allPath()
     {
         $allPath = [];
@@ -206,14 +210,29 @@ class TranslateableBehavior extends Behavior
         $this->loadTranslation(\Yii::$app->language);
     }
 
+    /**
+     * 
+     */
     public function translateOriginalValues()
     {
+        $module              = \Yii::$app->getModule('translation');
         $blackListAttributes = array_merge($this->blackListAttributes, $this->systemBlackListAttributes);
-        foreach ($this->getTranslation($this->getLanguage())->attributes as $key => $attribute) {
+        $language            = $this->getLanguage();
+        foreach ($this->getTranslation($language)->attributes as $key => $attribute) {
             $originalAttributes = $this->owner->attributes;
+            $beta_language      = \Yii::$app->user->can('CONTENT_TRANSLATOR') ? true : false;
+            $allLanguage        = $module->getAvailableLanguages($beta_language);
             if (!empty($attribute) && array_key_exists($key, $originalAttributes) && in_array($key,
                     $this->translationAttributes) && !in_array($key, $blackListAttributes)) {
                 $this->owner->$key = $attribute;
+            } else if (!empty($module->defaultTranslationLanguage) && empty($attribute) && array_key_exists($key,
+                    $originalAttributes) && in_array($key, $this->translationAttributes) && !in_array($key,
+                    $blackListAttributes) && (empty($module->defaultLanguage) || (strcasecmp($module->defaultLanguage,
+                    $language) != 0))) {
+                $defaultTranslationAttributes = $this->getTranslation($module->defaultTranslationLanguage);
+                if (!empty($defaultTranslationAttributes) && !empty($defaultTranslationAttributes->$key)) {
+                    $this->owner->$key = $defaultTranslationAttributes->$key;
+                }
             }
         }
     }
@@ -266,20 +285,32 @@ class TranslateableBehavior extends Behavior
 
     /**
      * Saves current translation model
-     * @return bool
+     * @param type $save
+     * @return boolean
      */
     public function saveTranslation($save = true)
     {
-        $delete                     = $this->owner->deleted_by;
-        $languages                  = [];
-        $module                     = \Yii::$app->getModule('translation');
-        $result                     = true;
-        $languages[]['language_id'] = (!empty($this->defaultLanguage) ? $this->defaultLanguage : $this->getLanguage());
+        $delete          = $this->owner->deleted_by;
+        $languages       = [];
+        $module          = \Yii::$app->getModule('translation');
+        $result          = true;
+        $languages       = \open20\amos\translation\models\TranslationConf::getStaticAllActiveLanguages($module->byPassPermissionInlineTranslation)->asArray()->all();
+        $defaultLanguage = (!empty($this->defaultLanguage) ? $this->defaultLanguage : null);
         if ($delete) {
-            if ($this->afterDeleteSource == self::DELETE_ALL) {
-                $languages = $this->getActiveLanguages();
+            if ($this->afterDeleteSource == self::DELETE_ONLY_LANGUAGE_SELECTED) {
+                $languages                  = [];
+                $languages[]['language_id'] = \Yii::$app->language;
             }
         }
+        $classOwner = StringHelper::basename(get_class($this->owner));
+        $classTrans = $module->modelNs.'\\'.$classOwner.'Translation';
+        //If the translation model does not exist it will be generated
+        $this->generateModels($classTrans);
+
+        $tableOwner = $this->owner->tableName();
+        $idOwner    = $this->owner->id;
+        $pkTrans    = $tableOwner.'_id';
+        $pkSource   = \Yii::$app->{$module->dbSource}->getTableSchema($this->owner->tableName())->primaryKey;
         foreach ($languages as $lang) {
             $language = $lang['language_id'];
             $model    = $this->getTranslation($language, $save);
@@ -289,20 +320,20 @@ class TranslateableBehavior extends Behavior
                 return true; // we do not need to save anything
             }
             try {
-                /** @var \yii\db\ActiveQuery $relation */
-                $relation = $this->owner->getRelation($this->relation);
+                if (!method_exists(get_class($this->owner), $this->relation)) {
+                    $notExistTranslation = true;
+                } else {
+                    /** @var \yii\db\ActiveQuery $relation */
+                    $relation = $this->owner->getRelation($this->relation);
+                }
             } catch (\Exception $ex) {
                 $notExistTranslation = true;
             }
             if ($notExistTranslation) {
-                $classOwner = StringHelper::basename(get_class($this->owner));
-                $classTrans = $module->modelNs.'\\'.$classOwner.'Translation';
-                $pkTrans    = $this->owner->tableName().'_id';
-                $pkSource   = \Yii::$app->{$module->dbSource}->getTableSchema($this->owner->tableName())->primaryKey;
-                $relation   = $this->owner->hasMany($classTrans::className(), [$pkTrans => $pkSource[0]]);
+                $relation = $this->owner->hasMany($classTrans::className(), [$pkTrans => $pkSource[0]]);
             }
             $model->{key($relation->link)} = $this->owner->getPrimaryKey();
-
+            $model->{$this->languageField} = $language;
             if ($this->enableWorkflow) {
                 $dBehaavior = $model->detachBehavior($this->workflowBehavior);
                 if (!$dBehaavior) {
@@ -318,10 +349,20 @@ class TranslateableBehavior extends Behavior
                 $model->status = $this->statusWorkflowApproved;
             }
             if ($this->enableValidationAttributes && !$delete) {
+                $this->rollbackSource($model, $dirty, $defaultLanguage);
                 try {
+                    $model->setIsNewRecord(true);
                     $result = $result && $model->save();
                 } catch (\Exception $ex1) {
-                    $result = $result && $model->update();
+                    $model->setIsNewRecord(false);
+                    $pkModel = \Yii::$app->{$module->dbSource}->getTableSchema($model->tableName())->primaryKey;
+                    foreach ($dirty as $k => $v) {
+                        if (!in_array($k, $pkModel)) {
+                            $model->setOldAttribute($k, '####update_id####');
+                            $this->owner->setOldAttribute($k, '####update_id####');
+                        }
+                    }
+                    $result = $result && $model->save();
                 }
             } else if ($delete) {
                 $ret = true;
@@ -332,18 +373,79 @@ class TranslateableBehavior extends Behavior
                 }
                 $result = $result && $ret;
             } else {
-                try {
-                    $result = $result && $model->save(false);
-                    $this->clearCache();
-                } catch (\Exception $ex1) {
-                    $result = $result && $model->update(false);
-                    $this->clearCache();
+                $this->rollbackSource($model, $dirty, $defaultLanguage);
+                if (\Yii::$app->language == $language) {
+                    // pr($language,'language');
+                    try {
+                        $model->setIsNewRecord(true);
+                        $result = $result && $model->save(false);
+                    } catch (\Exception $ex1) {
+                        $model->setIsNewRecord(false);
+                        $pkModel = \Yii::$app->{$module->dbSource}->getTableSchema($model->tableName())->primaryKey;
+                        foreach ($dirty as $k => $v) {
+                            if (!in_array($k, $pkModel)) {
+                                $model->setOldAttribute($k, '####update_id####');
+                                $this->owner->setOldAttribute($k, '####update_id####');
+                            }
+                        }
+                        $result = $result && $model->save(false);
+                    }
                 }
             }
         }
+        $this->clearCache();
         return $result;
     }
 
+    /**
+     * If the translation model does not exist it will be generated
+     * @param string $classTrans
+     */
+    private function generateModels($classTrans)
+    {
+        $module = \Yii::$app->getModule('translation');
+        if (class_exists($classTrans) == false) {
+            $module->generateTranslationTables(false, true);
+            $module->generateTranslationModels(true);
+        }
+    }
+
+    /**
+     * Rollback the record source
+     * @param \yii\db\ActiveRecord $model
+     * @param array $dirty
+     * @param string $defaultLanguage
+     */
+    private function rollbackSource($model, $dirty, $defaultLanguage = null)
+    {
+        if (\Yii::$app->language != $defaultLanguage || $defaultLanguage == null) {
+            if (!empty($dirty) && !is_null($this->owner)) {
+                $module     = \Yii::$app->getModule('translation');
+                $classOwner = get_class($this->owner);
+                $idOwner    = $this->owner->id;
+                $oldModel   = $classOwner::findOne(['id' => $idOwner]);
+                $oldModel->detachBehaviors();
+                $pkModel    = \Yii::$app->{$module->dbSource}->getTableSchema($model->tableName())->primaryKey;
+
+                // Sometimes oldAttributes is not setted!
+                if (($model->isNewRecord) && (count($model->oldAttributes) == 0)) {
+                    $model->oldAttributes = $model->attributes;
+                }
+
+                foreach ($dirty as $k => $v) {
+                    if (!in_array($k, $pkModel)) {
+                        $oldModel->{$k} = $model->oldAttributes[$k];
+                    }
+                }
+
+                $oldModel->save(false);
+            }
+        }
+    }
+
+    /**
+     * Clear the cache
+     */
     protected function clearCache()
     {
         $module = \Yii::$app->getModule('translation');
@@ -436,6 +538,8 @@ class TranslateableBehavior extends Behavior
         if ($notExistTranslation) {
             $classOwner = StringHelper::basename(get_class($this->owner));
             $classTrans = $module->modelNs.'\\'.$classOwner.'Translation';
+            //If the translation model does not exist it will be generated
+            $this->generateModels($classTrans);
             $pkTrans    = $this->owner->tableName().'_id';
             $pkSource   = \Yii::$app->{$module->dbSource}->getTableSchema($this->owner->tableName())->primaryKey;
             $relation   = $this->owner->hasMany($classTrans::className(), [$pkTrans => $pkSource[0]]);
@@ -512,6 +616,9 @@ class TranslateableBehavior extends Behavior
         }
     }
 
+    /**
+     *
+     */
     protected function getModelTranslation()
     {
         $module = \Yii::$app->getModule('translation');

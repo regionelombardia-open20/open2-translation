@@ -1,12 +1,21 @@
 <?php
 
-namespace lispa\amos\translation\controllers;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+namespace open20\amos\translation\controllers;
 
 use Yii;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\helpers\Url;
-use lispa\amos\dashboard\controllers\base\DashboardController;
+use open20\amos\dashboard\controllers\base\DashboardController;
 
 /**
  * Translation controller
@@ -76,7 +85,7 @@ class TranslateController extends DashboardController {
         $module = \Yii::$app->getModule('layout');
         if (empty($module)) {
             if (strpos($this->layout, '@') === false) {
-                $this->layout = '@vendor/lispa/amos-core/views/layouts/'.(!empty($layout) ? $layout : $this->layout);
+                $this->layout = '@vendor/open20/amos-core/views/layouts/'.(!empty($layout) ? $layout : $this->layout);
             }
             return true;
         }

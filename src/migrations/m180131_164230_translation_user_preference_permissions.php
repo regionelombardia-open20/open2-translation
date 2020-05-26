@@ -1,14 +1,15 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation\migrations
  * @category   CategoryName
  */
-use lispa\amos\core\migration\AmosMigrationPermissions;
+
+use open20\amos\core\migration\AmosMigrationPermissions;
 use yii\rbac\Permission;
 
 /**
@@ -16,14 +17,11 @@ use yii\rbac\Permission;
  */
 class m180131_164230_translation_user_preference_permissions extends AmosMigrationPermissions
 {
-
     /**
      * @inheritdoc
      */
     protected function setRBACConfigurations()
     {
-        $prefixStr = '';
-
         return [
             [
                 'name' => 'TRANSLATIONUSERPREFERENCE_CREATE',

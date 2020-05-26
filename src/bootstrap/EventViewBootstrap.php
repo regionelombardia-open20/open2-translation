@@ -1,20 +1,20 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\bootstrap;
+namespace open20\amos\translation\bootstrap;
 
 use Yii;
 use yii\base\Application;
 use yii\helpers\FileHelper;
-use lispa\amos\translation\models\TranslationConf;
-use lispa\amos\translation\AmosTranslation;
+use open20\amos\translation\models\TranslationConf;
+use open20\amos\translation\AmosTranslation;
 
 /**
  * Class TranslationBootstrap: <br />
@@ -50,7 +50,7 @@ class EventViewBootstrap extends \yii\web\View
                 $modelsEnabled = [];
 
                 $blackListModels = array_merge([
-                    'lispa\amos\translation\bootstrap\EventViewBootstrap',
+                    'open20\amos\translation\bootstrap\EventViewBootstrap',
                     ], $moduleTranslation->eventViewBlackListModels);
 
                 $blackListViews = array_merge([

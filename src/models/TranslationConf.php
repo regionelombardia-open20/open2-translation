@@ -1,11 +1,20 @@
 <?php
 
-namespace lispa\amos\translation\models;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+namespace open20\amos\translation\models;
 
 use Yii;
-use lispa\amos\translation\AmosTranslation;
+use open20\amos\translation\AmosTranslation;
 use yii\helpers\StringHelper;
-use lispa\amos\core\icons\AmosIcons;
+use open20\amos\core\icons\AmosIcons;
 
 /**
  * This is the base-model class for table "translation_conf".
@@ -21,7 +30,7 @@ use lispa\amos\core\icons\AmosIcons;
  * @property integer $updated_by
  * @property integer $deleted_by
  */
-class TranslationConf extends \lispa\amos\core\record\Record
+class TranslationConf extends \open20\amos\core\record\Record
 {
     public $id_translate;
     public $language_id;
@@ -75,7 +84,7 @@ class TranslationConf extends \lispa\amos\core\record\Record
     {
         $newExpression = new \yii\db\Expression("concat_ws('_', translation_conf.namespace, language.language_id) as id_translate");
 
-        $activeQuery = (new \yii\db\Query())->from(\lispa\amos\translation\models\TranslationConf::tableName())
+        $activeQuery = (new \yii\db\Query())->from(\open20\amos\translation\models\TranslationConf::tableName())
             ->andWhere(['model_generated' => 1])
             ->join('cross join', \lajax\translatemanager\models\Language::tableName())
             ->andWhere(['status' => 1])
@@ -88,6 +97,10 @@ class TranslationConf extends \lispa\amos\core\record\Record
         return $activeQuery;
     }
 
+    /**
+     * 
+     * @return \lajax\translatemanager\models\Language
+     */
     public function getAllActiveLanguages()
     {
         if (\Yii::$app->authManager->checkAccess(\Yii::$app->getUser()->getId(), 'TRANSLATE_MANAGER')) {
@@ -105,10 +118,21 @@ class TranslationConf extends \lispa\amos\core\record\Record
         }
     }
 
-    public static function getStaticAllActiveLanguages($force = false, $namespace = null)
+    /**
+     * 
+     * @param boolean $force
+     * @param string $namespace
+     * @param boolean $statu_beta Default true
+     * @return \lajax\translatemanager\models\Language
+     */
+    public static function getStaticAllActiveLanguages($force = false, $namespace = null, $status_beta = true)
     {
         if ($force || \Yii::$app->authManager->checkAccess(\Yii::$app->getUser()->getId(), 'TRANSLATE_MANAGER')) {
-            $ret = \lajax\translatemanager\models\Language::find()->andWhere(['status' => 1]);
+            if ($status_beta === true && \Yii::$app->user->can('CONTENT_TRANSLATOR')) {
+                $ret = \lajax\translatemanager\models\Language::find()->andWhere(['>=', 'status', 1]);
+            } else {
+                $ret = \lajax\translatemanager\models\Language::find()->andWhere(['status' => 1]);
+            }
             if ($namespace) {
                 $module         = \Yii::$app->getModule('translation');
                 $classNameTrans = $module->modelNs.'\\'.StringHelper::basename($namespace)."Translation";
@@ -265,10 +289,10 @@ class TranslationConf extends \lispa\amos\core\record\Record
             'label' => AmosTranslation::t('amostranslation', 'Created by'),
             'format' => 'html',
             'value' => function ($model) {
-                $value = AmosTranslation::t('amostranslation', 'User #').$model['created_by'];
+                $value       = AmosTranslation::t('amostranslation', 'User #').$model['created_by'];
                 $moduleAdmin = \Yii::$app->getModule('admin');
                 if (!empty($moduleAdmin)) {
-                    $userProfile        = \lispa\amos\admin\AmosAdmin::instance()->createModel('UserProfile');
+                    $userProfile        = \open20\amos\admin\AmosAdmin::instance()->createModel('UserProfile');
                     $record             = $userProfile::findOne(['user_id' => $model['created_by']]);
                     $nameUserProfile    = \Yii::$app->getModule('translation')->nameCreatedBy;
                     $surnameUserProfile = \Yii::$app->getModule('translation')->surnameCreatedBy;
@@ -305,7 +329,7 @@ class TranslationConf extends \lispa\amos\core\record\Record
         }
 
         $columns[] = [
-            'class' => \lispa\amos\core\views\grid\ActionColumn::className(),
+            'class' => \open20\amos\core\views\grid\ActionColumn::className(),
             'template' => '{custom}',
             'buttons' => [
                 'custom' => function ($url, $model) {

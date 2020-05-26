@@ -1,24 +1,24 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\bootstrap;
+namespace open20\amos\translation\bootstrap;
 
-use lispa\amos\translation\AmosTranslation;
-use lispa\amos\translation\models\LanguageTranslateUserFields;
+use open20\amos\translation\AmosTranslation;
+use open20\amos\translation\models\LanguageTranslateUserFields;
 use Yii;
 use yii\base\Event;
 use yii\db\ActiveRecord;
 
 /**
  * Class EventActiveRecordBootstrap
- * @package lispa\amos\translation\bootstrap
+ * @package open20\amos\translation\bootstrap
  */
 class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
 {

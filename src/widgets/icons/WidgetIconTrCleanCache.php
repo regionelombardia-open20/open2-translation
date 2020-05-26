@@ -16,7 +16,7 @@ use open20\amos\translation\AmosTranslation;
 use Yii;
 use yii\helpers\ArrayHelper;
 
-class WidgetIconTrPlatform extends WidgetIcon
+class WidgetIconTrCleanCache extends WidgetIcon
 {
 
     /**
@@ -26,12 +26,12 @@ class WidgetIconTrPlatform extends WidgetIcon
     {
         parent::init();
 
-        $this->setLabel(AmosTranslation::tHtml('amostranslation', 'Translate platform'));
-        $this->setDescription(AmosTranslation::t('amostranslation', 'Translate platform'));
+        $this->setLabel(AmosTranslation::tHtml('amostranslation', 'Clean cache'));
+        $this->setDescription(AmosTranslation::t('amostranslation', 'Clean cache'));
         $this->setIcon('translate');
         $this->setIconFramework('am');
-        $this->setUrl(Yii::$app->urlManager->createUrl(['/translatemanager/language/list']));
-        $this->setCode('TRANSLATE_PLATFORM');
+        $this->setUrl(Yii::$app->urlManager->createUrl(['/translation/translatemanager/clean-cache']));
+        $this->setCode('TRANSLATE_CLEAN_CACHE');
         $this->setModuleName('translation');
         $this->setNamespace(__CLASS__);
 

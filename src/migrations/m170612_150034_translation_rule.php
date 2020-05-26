@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\migrations
+ * @package    open20\amos\translation\migrations
  * @category   CategoryName
  */
 

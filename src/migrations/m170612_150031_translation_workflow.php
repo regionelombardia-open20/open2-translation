@@ -1,13 +1,24 @@
 <?php
 
-use lispa\amos\core\migration\AmosMigrationPermissions;
-use yii\rbac\Permission;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    open20\amos\translation\migrations
+ * @category   CategoryName
+ */
 
-class m170612_150031_translation_workflow extends \yii\db\Migration {
-
-
-    public function safeUp() {
-    
+/**
+ * Class m170612_150031_translation_workflow
+ */
+class m170612_150031_translation_workflow extends \yii\db\Migration
+{
+    /**
+     * @inheritdoc
+     */
+    public function safeUp()
+    {
         $this->execute("SET FOREIGN_KEY_CHECKS=0;");
 
         $this->execute("
@@ -37,9 +48,12 @@ class m170612_150031_translation_workflow extends \yii\db\Migration {
         return true;
     }
 
-    public function safeDown() {
+    /**
+     * @inheritdoc
+     */
+    public function safeDown()
+    {
         echo "No migration dows available for m170612_150031_translation_workflow";
         return true;
     }
-
 }

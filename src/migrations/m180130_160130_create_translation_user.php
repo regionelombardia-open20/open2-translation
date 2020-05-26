@@ -1,13 +1,24 @@
 <?php
 
-use lispa\amos\core\migration\AmosMigrationPermissions;
-use yii\rbac\Permission;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    open20\amos\translation\migrations
+ * @category   CategoryName
+ */
 
+/**
+ * Class m180130_160130_create_translation_user
+ */
 class m180130_160130_create_translation_user extends \yii\db\Migration
 {
-
     const TABLE = '{{%translation_user_preference}}';
 
+    /**
+     * @inheritdoc
+     */
     public function safeUp()
     {
         $tableName = $this->db->getSchema()->getRawTableName(self::TABLE);
@@ -38,6 +49,9 @@ class m180130_160130_create_translation_user extends \yii\db\Migration
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function safeDown()
     {
         try {
@@ -50,5 +64,4 @@ class m180130_160130_create_translation_user extends \yii\db\Migration
 
         return true;
     }
-
 }

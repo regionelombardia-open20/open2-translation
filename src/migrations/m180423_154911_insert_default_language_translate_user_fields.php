@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\migrations
+ * @package    open20\amos\translation\migrations
  * @category   CategoryName
  */
 
-use lispa\amos\translation\AmosTranslation;
-use lispa\amos\translation\models\LanguageTranslateUserFields;
+use open20\amos\translation\AmosTranslation;
+use open20\amos\translation\models\LanguageTranslateUserFields;
 use yii\db\ActiveRecord;
 use yii\db\Migration;
 use yii\db\Query;

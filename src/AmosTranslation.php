@@ -1,19 +1,19 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation;
+namespace open20\amos\translation;
 
-use lispa\amos\core\module\Module;
-use lispa\amos\core\module\AmosModule;
-use lispa\amos\core\module\ModuleInterface;
-use lispa\amos\core\record\Record;
+use open20\amos\core\module\Module;
+use open20\amos\core\module\AmosModule;
+use open20\amos\core\module\ModuleInterface;
+use open20\amos\core\record\Record;
 use yii\web\Application;
 use yii\base\BootstrapInterface;
 use Yii;
@@ -23,7 +23,7 @@ use yii\helpers\FileHelper;
 
 /**
  * Class AmosWorkflow
- * @package lispa\amos\workflow
+ * @package open20\amos\workflow
  */
 class AmosTranslation extends AmosModule implements BootstrapInterface
 {
@@ -39,25 +39,80 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public $newFileMode         = 0666;
     public $newDirMode          = 0777;
     public $languageField       = 'language';
-    public $controllerNamespace = 'lispa\amos\translation\controllers';
+    public $controllerNamespace = 'open20\amos\translation\controllers';
+
+    /**
+     * It set the language source, if is set every saved record is copied in the translation language default
+     * @var type $defaultLanguage
+     */
     public $defaultLanguage;
-    public $enableUserLanguage  = true;
+
+    /**
+     * If is set it sets the translation language when the translation request is not present
+     * @var type $defaultTranslationLanguage
+     */
+    public $defaultTranslationLanguage;
+    public $enableUserLanguage = true;
+
+    /**
+     * If the value is true it disable all the permission on the record translation
+     * @var type $byPassPermissionInlineTranslation
+     */
+    public $byPassPermissionInlineTranslation = true;
+
+    /**
+     * If set to true it enables the display of the translatable fields in the forms
+     * @var boolean $enableLabelTranslationField
+     */
+    public $enableLabelTranslationField = false;
+
+    /**
+     * Template of translation field in the form, near the label
+     * @var string $templateTranslationField
+     */
+    public $templateTranslationField = '{translation}';
+
+    /**
+     * Template of translation alt field in the form, near the $templateTranslationField
+     * @var string $templateTranslationAltField
+     */
+    public $templateTranslationAltField = '{altTranslation}';
+
+    /**
+     * This string will be parsed by the "eval()" function instead of $tempalteTransaltionField, by default {translation}
+     * @var string $translationLabelField
+     */
+    public $translationLabelField = 'strtoupper(substr(\Yii::$app->language, 0, 2));';
+
+    /**
+     * This string will be parsed by the "eval()" function instead of $templateTranslationAltField, by default {altTranslation}
+     * @var string $translationLabelAltField
+     */
+    public $translationLabelAltField = '\Yii::t("amostranslation", "Testo traducibile direttamente scrivendo in questo campo, tradurrai nella lingua selezionata, la visualizzazione attuale è in");';
+
+    /**
+     * This string is the html code that will be used in the labels to represent a translatable field
+     * @var string $labelTranslationField
+     */
+    public $labelTranslationField = ' (<span class="label_translation am am-translate" title="{altTranslation} {translation}"> - {translation}</span>)';
 
     /**
      * It is the default user language
      * @var string $defaultUserLanguage
      */
-    public $defaultUserLanguage = 'en-GB';
-    public $nameCreatedBy       = 'nome';
-    public $surnameCreatedBy    = 'cognome';
-    public $supportedLanguages  = [];
+    public $defaultUserLanguage         = 'en-GB';
+    public $nameCreatedBy               = 'nome';
+    public $surnameCreatedBy            = 'cognome';
+    public $supportedLanguages          = [];
+    public $secureCookie                = true;
+    public $enableCookieFor2LevelDomain = false;
 
     /**
      * Add this module to /common/config/main.php
      * ```php
      * 'modules' => [
      * 'translation' => [
-     *      'class' => 'lispa\amos\translation\AmosTranslation',
+     *      'class' => 'open20\amos\translation\AmosTranslation',
      *      'translationBootstrap' => [
      *          'configuration' => [
      *              'translationLabels' => [
@@ -72,12 +127,12 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
      *                  ],
      *              ],
      *              'translationContents' => [
-     *                  'classBehavior' => \lispa\amos\translation\behaviors\TranslateableBehavior::className(),
+     *                  'classBehavior' => \open20\amos\translation\behaviors\TranslateableBehavior::className(),
      *                  'models' => [
      *                      [
      *                      'namespace' => 'backend\modules\id_plugin\models\NameModel',
      *                      //'connection' => 'db', //if not set it use 'db'
-     *                      //'classBehavior' => null,//if not set it use default classBehavior 'lispa\amos\translation\behaviors\TranslateableBehavior'
+     *                      //'classBehavior' => null,//if not set it use default classBehavior 'open20\amos\translation\behaviors\TranslateableBehavior'
      *                      //'enableWorkflow' => false,//if not set it use default configuration of the plugin
      *                      //'workflow' => 'AmosTranslationWorkflow',
      *                      //'view' => '@backend/modules/module/controller/view,
@@ -105,8 +160,8 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
      * ```php
      *  'bootstrap' => [
      *      'translation',
-     *      'lispa\amos\translation\bootstrap\EventActiveRecordBootstrap',//fot the translation of the records
-     *      'lispa\amos\translation\bootstrap\EventViewBootstrap',//for the widget in the view file
+     *      'open20\amos\translation\bootstrap\EventActiveRecordBootstrap',//fot the translation of the records
+     *      'open20\amos\translation\bootstrap\EventViewBootstrap',//for the widget in the view file
      * ],
      * ```
      */
@@ -118,7 +173,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public $eventViewBlackListModels = [];
     public $eventViewWhiteListParts  = ['_form'];
     public $enableWidgetView         = true;
-    public $widgetViewFile           = '@vendor/lispa/amos-translation/src/views/default/language_status.php';
+    public $widgetViewFile           = '@vendor/open20/amos-translation/src/views/default/language_status.php';
     public $actionLanguage           = '/translation/default/language';
     public $numberGridViewField      = 3;
     public $enableRTE                = true;
@@ -128,7 +183,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
      * Model base class will be generated
      * @var string
      */
-    public $modelBaseClass        = 'lispa\\amos\\core\\record\\Record';
+    public $modelBaseClass        = 'open20\\amos\\core\\record\\Record';
     public $modelNs               = "backend\\models\\translations";
     public $modelGenerateRelation = 'all';
 
@@ -147,7 +202,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public $statusWorkflowInitial            = 'AmosTranslationWorkflow/DRAFT';
     public $module_translation_labels;
     public $module_translation_labels_options;
-    public $components = [];
+    public $components                       = [];
     public $dbTranslation                    = 'db';
     public $dbSource                         = 'db';
     public $defaultTypeAttributesToTranslate = ['string', 'text'];
@@ -156,7 +211,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
 
     /**
      * The cache object or the ID of the cache application component that is used for query caching
-     * @var type 
+     * @var type
      */
     public $queryCache = 'cache';
 
@@ -196,6 +251,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public $modelOwnerPlatformTranslation     = 'lajax\translatemanager\models\LanguageTranslate';
     public $modelOwnerPlatformTrIdField       = 'id';
     public $modelOwnerPlatformTrLanguageField = 'language';
+    public $availableLanguages                = null;
 
     public static function getModuleName()
     {
@@ -206,7 +262,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     {
         parent::init();
 
-        \Yii::setAlias('@lispa/amos/'.static::getModuleName().'/controllers', __DIR__.'/controllers');
+        \Yii::setAlias('@open20/amos/'.static::getModuleName().'/controllers', __DIR__.'/controllers');
 // initialize the module with the configuration loaded from config.php
         Yii::configure($this, require(__DIR__.DIRECTORY_SEPARATOR.self::$CONFIG_FOLDER.DIRECTORY_SEPARATOR.'config.php'));
         $this->configTranslationLabelsByModules();
@@ -248,12 +304,12 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
             '@app',
             '@backend',
             '@frontend',
-            '@vendor/lispa/',
+            '@vendor/open20/',
         ]);
         $configuration['scanRootParentDirectory'] = (isset($this->module_translation_labels_options['scanRootParentDirectory'])
                 ? $this->module_translation_labels_options['scanRootParentDirectory'] : true);
         $configuration['layout']                  = (isset($this->module_translation_labels_options['layout']) ? $this->module_translation_labels_options['layout']
-                : '@vendor/lispa/amos-layout/src/views/layouts/main');
+                : '@vendor/open20/amos-layout/src/views/layouts/main');
         $configuration['allowedIPs']              = (isset($this->module_translation_labels_options['allowedIPs']) ? $this->module_translation_labels_options['allowedIPs']
                 : ['*']);
         $configuration['roles']                   = (isset($this->module_translation_labels_options['roles']) ? $this->module_translation_labels_options['roles']
@@ -310,15 +366,12 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public function bootstrap($app)
     {
         if ($app instanceof Application) {
-            $preferredLanguage = (isset($app->request->cookies['language']) && !\Yii::$app->getUser()->isGuest) ? (string) $app->request->cookies['language']
-                    : null;
-
+            $preferredLanguage = !\Yii::$app->user->isGuest ? $this->getLanguageCookie() : null;
             if (empty($preferredLanguage)) {
                 if ($this->enableUserLanguage == true && !\Yii::$app->getUser()->isGuest) {
                     $preferredLanguage = $this->getUserLanguage();
                 } else if (\Yii::$app->getUser()->isGuest) {
-                    $preferredLanguage = (isset($app->request->cookies['language']) ? (string) $app->request->cookies['language']
-                            : null);
+                    $preferredLanguage = $this->getLanguageCookie();
                     if (empty($preferredLanguage)) {
                         $preferredLanguage = $this->getBrowserLanguage();
                     }
@@ -335,6 +388,20 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         if (empty($app->language)) {
             $app->language = $this->defaultUserLanguage;
         }
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getLanguageCookie()
+    {
+        if ($this->secureCookie) {
+            $preferredLanguage = (isset(\Yii::$app->request->cookies['language'])) ? (string) \Yii::$app->request->cookies['language']
+                    : null;
+        } else {
+            $preferredLanguage = !empty($_COOKIE['language']) ? $_COOKIE['language'] : null;
+        }
+        return $preferredLanguage;
     }
 
     /**
@@ -365,6 +432,34 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         if (empty(\Yii::$app->language)) {
             \Yii::$app->language = $this->defaultUserLanguage;
         }
+    }
+
+    /**
+     * Set guest language
+     * @return string $language For example 'it-IT', 'en-GB', 'en-US'
+     */
+    public function getGuestLanguage()
+    {
+        $preferredLanguage = null;
+        $language          = null;
+        if (\Yii::$app instanceof Application) {
+            $preferredLanguage = $this->getLanguageCookie();
+            if (empty($preferredLanguage)) {
+                $preferredLanguage = $this->getLanguageCookie();
+                if (empty($preferredLanguage)) {
+                    $preferredLanguage = $this->getBrowserLanguage();
+                }
+                if (empty($preferredLanguage)) {
+                    $preferredLanguage = \Yii::$app->request->getPreferredLanguage($this->supportedLanguages);
+                }
+            }
+            $language = $preferredLanguage;
+        }
+        if (empty($language)) {
+            $language = $this->defaultUserLanguage;
+        }
+
+        return $language;
     }
 
     /**
@@ -435,21 +530,29 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
 
     /**
      *
-     * @return type
+     * @param boolean $beta_language Default false
+     * @return array
      */
-    public function getAvailableLanguages()
+    public function getAvailableLanguages($beta_language = false)
     {
-        $languages = models\TranslationConf::getStaticAllActiveLanguages(true)->asArray()->all();
-        $available = [];
-        if (!empty($languages)) {
-            foreach ($languages as $availableLang) {
-                $available[$availableLang['language']]    = $availableLang['language_id'];
-                $available[$availableLang['language_id']] = $availableLang['language_id'];
+        if (is_null($this->availableLanguages)) {
+            $languages                = models\TranslationConf::getStaticAllActiveLanguages(true, null, $beta_language)->asArray()->all();
+            $this->availableLanguages = [];
+            if (!empty($languages)) {
+                foreach ($languages as $availableLang) {
+                    $this->availableLanguages[$availableLang['language']]    = $availableLang['language_id'];
+                    $this->availableLanguages[$availableLang['language_id']] = $availableLang['language_id'];
+                }
             }
         }
-        return $available;
+        return $this->availableLanguages;
     }
 
+    /**
+     *
+     * @param integer $userId
+     * @return string|null
+     */
     private function getUserLanguagePreference($userId)
     {
         $preference = models\TranslationUserPreference::find()->andWhere(['user_id' => $userId]);
@@ -468,18 +571,27 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         \Yii::$app->language = $language;
     }
 
+    /**
+     *
+     * @return array
+     */
     public function getDefaultModels()
     {
         return [];
     }
 
-    public function generateTranslationTables($force = false)
+    /**
+     * 
+     * @param boolean $force
+     * @param boolean $forceModels
+     */
+    public function generateTranslationTables($force = false, $forceModels = false)
     {
         $models = [];
         if (!empty($this->translationBootstrap['configuration']['translationContents']['models'])) {
             foreach ($this->translationBootstrap['configuration']['translationContents']['models'] as $model) {
                 $isCreated = $this->executeSql($model['namespace'], $force);
-                if ($isCreated !== false) {
+                if ($isCreated !== false || $forceModels === true) {
                     $models[] = ['namespace' => $model['namespace'], 'plugin' => (!empty($model['plugin']) ? $model['plugin']
                             : null)];
                 }
@@ -503,13 +615,17 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         }
     }
 
+    /**
+     *
+     * @param boolean $force
+     */
     public function generateTranslationModels($force = false)
     {
         $models         = [];
         $files          = [];
         $workflow       = 'AmosTranslationWorkflow';
         $enableWorkflow = false;
-        if (\Yii::$app->db->getTableSchema(models\TranslationConf::tableName(), true) !== null) {
+        if (\Yii::$app->db->getTableSchema(models\TranslationConf::tableName(), false) !== null) {
             $verifyModels = models\TranslationConf::find();
             if ($force == false) {
                 $verifyModels->andWhere(['model_generated' => 0]);
@@ -575,15 +691,21 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         }
     }
 
+    /**
+     *
+     * @param string $classname
+     * @param boolean $force
+     * @return boolean
+     */
     protected function executeSql($classname, $force = false)
     {
         $sql    = "";
         $result = false;
         try {
-            $connection                    = \Yii::$app->{$this->dbTranslation};
-            $connection->enableQueryCache  = false;
-            $connection->enableSchemaCache = false;
-            $table                         = $classname::tableName();
+            $connection = \Yii::$app->{$this->dbTranslation};
+            //$connection->enableQueryCache  = false;
+            //$connection->enableSchemaCache = false;
+            $table      = $classname::tableName();
 
             if (\Yii::$app->{$this->dbTranslation}->getTableSchema("{$table}__translation") === NULL) {
 
@@ -638,6 +760,11 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         }
     }
 
+    /**
+     *
+     * @param string $classname
+     * @return array
+     */
     protected function getChangeAttributes($classname)
     {
         $table = $classname::tableName();

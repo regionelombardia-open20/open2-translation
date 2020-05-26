@@ -1,10 +1,10 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\i18n\it-IT
+ * @package    open20\amos\translation\i18n\it-IT
  * @category   CategoryName
  */
 return [
@@ -62,4 +62,8 @@ return [
     'Clean cache' => 'Cancella cache',
     '#description_field_placeholder' => 'Inserisci la traduzione',
     'Translations' => 'Traduzioni',
+    'Translation' => 'Traduzione',
+    'Select...' => 'Seleziona...',
+    'Translated' => 'Tradotto',
+    '#cache_deleted' => 'Cache cancellata',
 ];

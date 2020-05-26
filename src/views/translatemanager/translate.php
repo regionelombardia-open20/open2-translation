@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @author Lajos Molnár <lajax.m@gmail.com>
  *
  * @since 1.0
  */
@@ -79,7 +89,7 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ]);
     Pjax::end();
-    echo Html::a(\lispa\amos\translation\AmosTranslation::t('amostranslation', 'Clean cache'), '/translation/translatemanager/clean-cache', [
+    echo Html::a(\open20\amos\translation\AmosTranslation::t('amostranslation', 'Clean cache'), '/translation/translatemanager/clean-cache', [
         'class' => 'btn btn-navigation-primary pull-right'
     ])
     ?>

@@ -1,27 +1,27 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\chat
+ * @package    open20\amos\chat
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\assets;
+namespace open20\amos\translation\assets;
 
 use yii\web\AssetBundle;
 
 /**
  * Class AmosChatAsset
- * @package lispa\amos\chat\assets
+ * @package open20\amos\chat\assets
  */
 class AmosTranslationAsset extends AssetBundle
 {
     /**
      * @var string
      */
-    public $sourcePath = '@vendor/lispa/amos-translation/src/assets/web';
+    public $sourcePath = '@vendor/open20/amos-translation/src/assets/web';
 
     /**
      * @var array
@@ -39,6 +39,6 @@ class AmosTranslationAsset extends AssetBundle
      * @var array
      */
     public $depends = [
-        'lispa\amos\core\views\assets\AmosCoreAsset',
+        'open20\amos\core\views\assets\AmosCoreAsset',
     ];
 }

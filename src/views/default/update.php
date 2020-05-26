@@ -1,17 +1,26 @@
 <?php
 
-use lispa\amos\core\helpers\Html;
-use lispa\amos\core\views\DataProviderView;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+use open20\amos\core\helpers\Html;
+use open20\amos\core\views\DataProviderView;
 use yii\widgets\Pjax;
 use yii\helpers\StringHelper;
 use yii\helpers\Inflector;
-use lispa\amos\translation\AmosTranslation;
-use lispa\amos\translation\models\TranslationConf;
-use lispa\amos\core\forms\ActiveForm;
-use lispa\amos\core\forms\CloseSaveButtonWidget;
-use lispa\amos\core\forms\TextEditorWidget;
+use open20\amos\translation\AmosTranslation;
+use open20\amos\translation\models\TranslationConf;
+use open20\amos\core\forms\ActiveForm;
+use open20\amos\core\forms\CloseSaveButtonWidget;
+use open20\amos\core\forms\TextEditorWidget;
 
-\lispa\amos\translation\assets\AmosTranslationAsset::register($this);
+\open20\amos\translation\assets\AmosTranslationAsset::register($this);
 
 /**
  * @var yii\web\View $this
@@ -52,7 +61,7 @@ $this->params['breadcrumbs'][] = $this->title;
         if ($workflowId !== null) {
             ?>
             <?=
-            \lispa\amos\core\forms\WorkflowTransitionWidget::widget([
+            \open20\amos\core\forms\WorkflowTransitionWidget::widget([
                 'form' => $form,
                 'model' => $model,
                 'workflowId' => $workflowId,

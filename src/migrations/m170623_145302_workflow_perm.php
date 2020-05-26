@@ -1,30 +1,32 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\migrations
+ * @package    open20\amos\translation\migrations
  * @category   CategoryName
  */
-use lispa\amos\core\migration\AmosMigrationPermissions;
-use yii\helpers\ArrayHelper;
+
+use open20\amos\core\migration\AmosMigrationPermissions;
 use yii\rbac\Permission;
 
 /**
- * Class m170623_145300_trans_wid_perm
+ * Class m170623_145302_workflow_perm
  */
-class m170623_145302_workflow_perm extends AmosMigrationPermissions {
-
+class m170623_145302_workflow_perm extends AmosMigrationPermissions
+{
     /**
      * @inheritdoc
      */
-    protected function setRBACConfigurations() {
+    protected function setRBACConfigurations()
+    {
         return $this->setModelPermissions();
     }
 
-    private function setModelPermissions() {
+    private function setModelPermissions()
+    {
         return [
             [
                 'name' => 'AmosTranslationWorkflow/DRAFT',
@@ -52,5 +54,4 @@ class m170623_145302_workflow_perm extends AmosMigrationPermissions {
             ],
         ];
     }
-
 }

@@ -1,14 +1,14 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\components;
+namespace open20\amos\translation\components;
 
 use Yii;
 use yii\gii\CodeFile;

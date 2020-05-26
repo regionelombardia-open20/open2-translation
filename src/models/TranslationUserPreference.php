@@ -1,14 +1,14 @@
 <?php
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation
+ * @package    open20\amos\translation
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\models;
+namespace open20\amos\translation\models;
 
 use Yii;
 
@@ -26,7 +26,7 @@ use Yii;
  *
  * @property \backend\modules\prova\models\User $user
  */
-class TranslationUserPreference extends \lispa\amos\core\record\Record
+class TranslationUserPreference extends \open20\amos\core\record\Record
 {
 
     /**
@@ -47,7 +47,7 @@ class TranslationUserPreference extends \lispa\amos\core\record\Record
             [['user_id', 'created_by', 'updated_by', 'deleted_by'], 'integer'],
             [['created_at', 'updated_at', 'deleted_at'], 'safe'],
             [['lang'], 'string', 'max' => 255],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \lispa\amos\core\user\User::className(), 'targetAttribute' => ['user_id' => 'id']],
+            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \open20\amos\core\user\User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
     }
 
@@ -73,7 +73,7 @@ class TranslationUserPreference extends \lispa\amos\core\record\Record
      */
     public function getUser()
     {
-        return $this->hasOne(\lispa\amos\core\user\User::className(), ['id' => 'user_id']);
+        return $this->hasOne(\open20\amos\core\user\User::className(), ['id' => 'user_id']);
     }
 
     public function representingColumn()
@@ -93,6 +93,7 @@ class TranslationUserPreference extends \lispa\amos\core\record\Record
      * Returns the text hint for the specified attribute.
      * @param string $attribute the attribute name
      * @return string the attribute hint
+     * @see attributeHints
      */
     public function getAttributeHint($attribute)
     {

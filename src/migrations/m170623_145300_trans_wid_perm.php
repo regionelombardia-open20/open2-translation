@@ -1,33 +1,35 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\migrations
+ * @package    open20\amos\translation\migrations
  * @category   CategoryName
  */
 
-use lispa\amos\core\migration\AmosMigrationPermissions;
+use open20\amos\core\migration\AmosMigrationPermissions;
 use yii\helpers\ArrayHelper;
 use yii\rbac\Permission;
 
 /**
  * Class m170623_145300_trans_wid_perm
  */
-class m170623_145300_trans_wid_perm extends AmosMigrationPermissions {
-
+class m170623_145300_trans_wid_perm extends AmosMigrationPermissions
+{
     /**
      * @inheritdoc
      */
-    protected function setRBACConfigurations() {
+    protected function setRBACConfigurations()
+    {
         return ArrayHelper::merge(
-                        $this->setPluginRoles(), $this->setModelPermissions(), $this->setWidgetsPermissions()
+            $this->setPluginRoles(), $this->setModelPermissions(), $this->setWidgetsPermissions()
         );
     }
 
-    private function setPluginRoles() {
+    private function setPluginRoles()
+    {
         return [
             [
                 'name' => 'TRANSLATE_MANAGER',
@@ -44,7 +46,8 @@ class m170623_145300_trans_wid_perm extends AmosMigrationPermissions {
         ];
     }
 
-    private function setModelPermissions() {
+    private function setModelPermissions()
+    {
         return [
             [
                 'name' => 'TRANSLATOR',
@@ -63,46 +66,46 @@ class m170623_145300_trans_wid_perm extends AmosMigrationPermissions {
         ];
     }
 
-    private function setWidgetsPermissions() {
+    private function setWidgetsPermissions()
+    {
         $prefixStr = 'Permissions for the dashboard for the widget ';
         return [
             [
-                'name' => \lispa\amos\translation\widgets\icons\WidgetIconTranslation::className(),
+                'name' => \open20\amos\translation\widgets\icons\WidgetIconTranslation::className(),
                 'type' => Permission::TYPE_PERMISSION,
-                'description' => $prefixStr . 'WidgetIconTranslation',                
+                'description' => $prefixStr . 'WidgetIconTranslation',
                 'parent' => ['TRANSLATE_MANAGER', 'CONTENT_TRANSLATOR']
             ],
             [
-                'name' => \lispa\amos\translation\widgets\icons\WidgetIconTrContents::className(),
+                'name' => \open20\amos\translation\widgets\icons\WidgetIconTrContents::className(),
                 'type' => Permission::TYPE_PERMISSION,
-                'description' => $prefixStr . 'WidgetIconTrContents',               
+                'description' => $prefixStr . 'WidgetIconTrContents',
                 'parent' => ['TRANSLATE_MANAGER', 'CONTENT_TRANSLATOR']
             ],
             [
-                'name' => \lispa\amos\translation\widgets\icons\WidgetIconTrPlatform::className(),
+                'name' => \open20\amos\translation\widgets\icons\WidgetIconTrPlatform::className(),
                 'type' => Permission::TYPE_PERMISSION,
-                'description' => $prefixStr . 'WidgetIconTrPlatform',               
+                'description' => $prefixStr . 'WidgetIconTrPlatform',
                 'parent' => ['TRANSLATE_MANAGER', 'CONTENT_TRANSLATOR']
             ],
             [
-                'name' => \lispa\amos\translation\widgets\icons\WidgetIconTrLanguage::className(),
+                'name' => \open20\amos\translation\widgets\icons\WidgetIconTrLanguage::className(),
                 'type' => Permission::TYPE_PERMISSION,
-                'description' => $prefixStr . 'WidgetIconTrLanguage',              
+                'description' => $prefixStr . 'WidgetIconTrLanguage',
                 'parent' => ['TRANSLATE_MANAGER']
             ],
             [
-                'name' => \lispa\amos\translation\widgets\icons\WidgetIconTrOptimize::className(),
+                'name' => \open20\amos\translation\widgets\icons\WidgetIconTrOptimize::className(),
                 'type' => Permission::TYPE_PERMISSION,
-                'description' => $prefixStr . 'WidgetIconTrOptimize',               
+                'description' => $prefixStr . 'WidgetIconTrOptimize',
                 'parent' => ['TRANSLATE_MANAGER']
             ],
             [
-                'name' => \lispa\amos\translation\widgets\icons\WidgetIconTrScan::className(),
+                'name' => \open20\amos\translation\widgets\icons\WidgetIconTrScan::className(),
                 'type' => Permission::TYPE_PERMISSION,
-                'description' => $prefixStr . 'WidgetIconTrScan',               
+                'description' => $prefixStr . 'WidgetIconTrScan',
                 'parent' => ['TRANSLATE_MANAGER']
             ],
         ];
     }
-
 }

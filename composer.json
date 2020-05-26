@@ -1,22 +1,22 @@
 {
-    "name": "lispa/amos-translation",
+    "name": "open20/amos-translation",
     "description": "AMOS Translation",
     "keywords": ["amos", "yii2", "translation"],
-    "homepage": "http://www.lispa.it/",
+    "homepage": "http://www.open20.it/",
     "type": "component",
-    "proscription": "BSD-3-Clause",
+    "license": "BSD-3-Clause",
     "support": {
         "issues": "http://www.example.com/",
         "forum": "http://www.example.com/forum/",
         "wiki": "http://www.example.com/wiki/",
-        "source": "https://github.com/lispa/amos-workflow"
+        "source": "https://github.com/open20/amos-workflow"
     },
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.5.0",
-        "lispa/amos-core" : "*",
-        "lispa/amos-dashboard" : "*",
-        "lispa/amos-workflow" : "*",
+        "open20/amos-core":">=1.9.50",
+        "open20/amos-dashboard": ">=1.8.15",
+        "open20/amos-workflow": "*",
         "lajax/yii2-translate-manager": "1.*"
     },
     "extra": {
@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "lispa\\amos\\translation\\": "src"
+            "open20\\amos\\translation\\": "src"
         }
     }
 }

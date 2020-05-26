@@ -1,10 +1,19 @@
 <?php
 
-use lispa\amos\core\helpers\Html;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+use open20\amos\core\helpers\Html;
 use yii\widgets\ActiveForm;
 use kartik\datecontrol\DateControl;
-use lispa\amos\translation\AmosTranslation;
-use lispa\amos\translation\models\TranslationConf;
+use open20\amos\translation\AmosTranslation;
+use open20\amos\translation\models\TranslationConf;
 
 ?>
 <div class="search">

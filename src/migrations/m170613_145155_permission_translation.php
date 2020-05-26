@@ -1,22 +1,33 @@
 <?php
 
-use lispa\amos\core\migration\AmosMigrationPermissions;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    open20\amos\translation\migrations
+ * @category   CategoryName
+ */
+
+use open20\amos\core\migration\AmosMigrationPermissions;
 use yii\rbac\Permission;
 
+/**
+ * Class m170613_145155_permission_translation
+ */
 class m170613_145155_permission_translation extends AmosMigrationPermissions
 {
     /**
-     * Use this function to map permissions, roles and associations between permissions and roles. If you don't need to
-     * to add or remove any permissions or roles you have to delete this method.
+     * @inheritdoc
      */
     protected function setAuthorizations()
     {
-        $this->authorizations = [            
+        $this->authorizations = [
             [
                 'name' => 'CanTranslateRule',
                 'type' => Permission::TYPE_PERMISSION,
                 'description' => 'Rule to translate',
-                'ruleName' => \lispa\amos\translation\rules\CanTranslateRule::className(), 
+                'ruleName' => \open20\amos\translation\rules\CanTranslateRule::className(),
                 'parent' => ['CONTENT_TRANSLATOR']
             ],
             [
@@ -25,7 +36,7 @@ class m170613_145155_permission_translation extends AmosMigrationPermissions
                 'description' => 'Permission to translate',
                 'ruleName' => null,
                 'parent' => ['CanTranslateRule']
-            ],            
+            ],
         ];
     }
 }

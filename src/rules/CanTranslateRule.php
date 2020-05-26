@@ -1,6 +1,15 @@
 <?php
 
-namespace lispa\amos\translation\rules;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+namespace open20\amos\translation\rules;
 
 use yii\web\ForbiddenHttpException;
 
@@ -16,7 +25,7 @@ class CanTranslateRule extends \yii\rbac\Rule {
      * @return boolean a value indicating whether the rule permits the role or permission it is associated with.
      */
     public function execute($user, $item, $params) {
-        $languages = \lispa\amos\translation\models\TranslationConf::getStaticAllActiveLanguages()->asArray()->all();
+        $languages = \open20\amos\translation\models\TranslationConf::getStaticAllActiveLanguages()->asArray()->all();
         $arrLanguages = [];
         foreach ($languages as $value) {
             $arrLanguages[] = $value['language_id'];
@@ -45,10 +54,10 @@ class CanTranslateRule extends \yii\rbac\Rule {
                 return true;
             } else {
                 if (!isset($params['model'])) {
-                    $parasm['model'] = new \lispa\amos\translation\models\TranslationUserLanguageMm();
+                    $parasm['model'] = new \open20\amos\translation\models\TranslationUserLanguageMm();
                 }
                 if (isset($params['model'])) {
-                    if ($params['model'] instanceof \lispa\amos\translation\models\TranslationUserLanguageMm) {
+                    if ($params['model'] instanceof \open20\amos\translation\models\TranslationUserLanguageMm) {
                         /**  $model Models for translation */
                         $model = $params['model'];
                         if (!isset($model->user_id)) {
@@ -92,12 +101,12 @@ class CanTranslateRule extends \yii\rbac\Rule {
                         }
                         $languageField = \Yii::$app->getModule('translation')->languageField;
                         if (isset($model->{$languageField}) && !empty($user)) {
-                            $hasLanguage = \lispa\amos\translation\models\TranslationUserLanguageMm::findOne(['user_id' => $user, 'language' => $model->{$languageField}]);
+                            $hasLanguage = \open20\amos\translation\models\TranslationUserLanguageMm::findOne(['user_id' => $user, 'language' => $model->{$languageField}]);
                             if ($hasLanguage) {
                                 return true;
                             }
                         } else if (!empty($params['language']) && !empty($user)) {
-                            $hasLanguage = \lispa\amos\translation\models\TranslationUserLanguageMm::findOne(['user_id' => $user, 'language' => $params['language']]);
+                            $hasLanguage = \open20\amos\translation\models\TranslationUserLanguageMm::findOne(['user_id' => $user, 'language' => $params['language']]);
                             if ($hasLanguage) {
                                 return true;
                             }

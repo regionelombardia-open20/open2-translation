@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\migrations
+ * @package    open20\amos\translation\migrations
  * @category   CategoryName
  */
 
-use lispa\amos\core\migration\AmosMigrationWidgets;
+use open20\amos\core\migration\AmosMigrationWidgets;
 
 /**
  * Class m180201_140324_change_widget_dashboard_visible
@@ -25,7 +25,7 @@ class m180201_140324_change_widget_dashboard_visible extends AmosMigrationWidget
     {
         $this->widgets = [
             [
-                'classname' => \lispa\amos\translation\widgets\icons\WidgetIconTranslation::className(),
+                'classname' => \open20\amos\translation\widgets\icons\WidgetIconTranslation::className(),
                 'dashboard_visible' => 1,
                 'update' => true
             ]

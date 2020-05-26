@@ -1,13 +1,22 @@
 <?php
 
-use lispa\amos\core\helpers\Html;
-use lispa\amos\core\views\DataProviderView;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+use open20\amos\core\helpers\Html;
+use open20\amos\core\views\DataProviderView;
 use yii\widgets\Pjax;
 use yii\helpers\StringHelper;
 use yii\helpers\Inflector;
-use lispa\amos\translation\AmosTranslation;
-use lispa\amos\translation\models\TranslationConf;
-use lispa\amos\core\icons\AmosIcons;
+use open20\amos\translation\AmosTranslation;
+use open20\amos\translation\models\TranslationConf;
+use open20\amos\core\icons\AmosIcons;
 
 /**
  * @var yii\web\View $this
@@ -25,7 +34,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <?php     
-    echo lispa\amos\core\views\AmosGridView::widget([
+    echo open20\amos\core\views\AmosGridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
             'nome', 
@@ -36,7 +45,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => AmosTranslation::t('amostranslation', 'Languages'),
                 'format' => 'html',
                 'value' => function ($model){
-                    $languages = lispa\amos\translation\models\TranslationUserLanguageMm::find()->andWhere(['user_id' => $model['user_id']]);
+                    $languages = open20\amos\translation\models\TranslationUserLanguageMm::find()->andWhere(['user_id' => $model['user_id']]);
                     if($languages->count()){
                         $i = 0;
                         $lng = '';
@@ -51,7 +60,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 },             
             ],           
                [
-            'class' => \lispa\amos\core\views\grid\ActionColumn::className(),
+            'class' => \open20\amos\core\views\grid\ActionColumn::className(),
             'template' => '{custom}',
             'buttons' => [
                 'custom' => function ($url, $model) {                      

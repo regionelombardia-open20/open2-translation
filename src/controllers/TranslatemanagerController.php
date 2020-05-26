@@ -1,15 +1,25 @@
 <?php
 
-namespace lispa\amos\translation\controllers;
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
 
-use lispa\amos\core\helpers\BreadcrumbHelper;
+namespace open20\amos\translation\controllers;
+
+use open20\amos\core\helpers\BreadcrumbHelper;
 use Yii;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
 use yii\helpers\Url;
-use lispa\amos\dashboard\controllers\base\DashboardController;
+use open20\amos\dashboard\controllers\base\DashboardController;
 use yii\web\Controller;
+use open20\amos\translation\AmosTranslation;
 
 /**
  * Translation controller
@@ -85,14 +95,16 @@ class TranslatemanagerController extends Controller {
 
         foreach ($this->dirs as $asset_dir) {
             if (!is_dir($asset_dir)) {
-                echo 'Did not find ' . $asset_dir . '/ .. skipping';
+                //echo 'Did not find ' . $asset_dir . '/ .. skipping';
                 continue;
             }
-            echo '<p>Checking ' . $asset_dir . '/ to remove old caches .. </p>';
+            //echo '<p>Checking ' . $asset_dir . '/ to remove old caches .. </p>';
 
             $nbr_cleaned += self::cleanCacheDir($asset_dir);
         }
-        echo '<p>Finished</p>';
+        \Yii::$app->getSession()->addFlash('success',
+                    AmosTranslation::t('amostranslation', '#cache_deleted'));
+        //echo '<p>Finished</p>';
 
         return $nbr_cleaned;
     }
@@ -133,7 +145,7 @@ class TranslatemanagerController extends Controller {
 
         // remove dirs
         foreach ($modified as $dir => $mod) {
-            echo '<p>' . 'removed ' . $dir . '</p>';
+            //echo '<p>' . 'removed ' . $dir . '</p>';
             FileHelper::removeDirectory($dir);
         }
 

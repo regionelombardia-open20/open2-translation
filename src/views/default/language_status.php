@@ -1,9 +1,18 @@
 <?php
 
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
 use yii\bootstrap\Progress;
-use lispa\amos\core\helpers\Html;
+use open20\amos\core\helpers\Html;
 use yii\helpers\StringHelper;
-use lispa\amos\translation\models\TranslationUserLanguageMm;
+use open20\amos\translation\models\TranslationUserLanguageMm;
 ?>
 <?php
 if (strpos(\yii\helpers\Url::current(), 'create') === false) {

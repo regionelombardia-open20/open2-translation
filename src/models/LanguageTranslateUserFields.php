@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Lombardia Informatica S.p.A.
+ * Aria S.p.A.
  * OPEN 2.0
  *
  *
- * @package    lispa\amos\translation\models
+ * @package    open20\amos\translation\models
  * @category   CategoryName
  */
 
-namespace lispa\amos\translation\models;
+namespace open20\amos\translation\models;
 
-use lispa\amos\translation\AmosTranslation;
+use open20\amos\translation\AmosTranslation;
 use yii\db\ActiveRecord;
 
 /**
@@ -29,7 +29,7 @@ use yii\db\ActiveRecord;
  * @property integer $updated_by
  * @property integer $deleted_by
  *
- * @package lispa\amos\translation\models
+ * @package open20\amos\translation\models
  */
 class LanguageTranslateUserFields extends ActiveRecord
 {
