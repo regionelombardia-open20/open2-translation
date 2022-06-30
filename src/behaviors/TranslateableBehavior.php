@@ -68,6 +68,12 @@ class TranslateableBehavior extends Behavior
      */
     private $_language;
 
+    /**
+     *
+     * @var bool $rollbackOk
+     */
+    public $rollbackOk = false;
+
     public function init()
     {
         parent::init();
@@ -444,9 +450,10 @@ class TranslateableBehavior extends Behavior
      */
     private function rollbackSource($model, $dirty, $defaultLanguage = null)
     {
-        $language = self::getMappedLanguage(\Yii::$app->language);
-        if ($language != $defaultLanguage || $defaultLanguage == null) {
+        if ($model->language == $defaultLanguage && (\Yii::$app->language != $defaultLanguage || $defaultLanguage == null)
+            && $this->rollbackOk == false) {
             if (!empty($dirty) && !is_null($this->owner)) {
+
                 $module     = \Yii::$app->getModule('translation');
                 $classOwner = get_class($this->owner);
                 $idOwner    = $this->owner->id;
@@ -466,6 +473,8 @@ class TranslateableBehavior extends Behavior
                 }
 
                 $oldModel->save(false);
+
+                $this->rollbackOk = true;
             }
         }
     }
