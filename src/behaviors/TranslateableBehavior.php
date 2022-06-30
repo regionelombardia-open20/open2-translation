@@ -220,7 +220,11 @@ class TranslateableBehavior extends Behavior
         $language            = $this->getLanguage();
         foreach ($this->getTranslation($language)->attributes as $key => $attribute) {
             $originalAttributes = $this->owner->attributes;
-            $beta_language      = \Yii::$app->user->can('CONTENT_TRANSLATOR') ? true : false;
+            $beta_language      = false;
+            if(\Yii::$app instanceof \yii\web\Application)
+            {    
+                $beta_language      = \Yii::$app->user->can('CONTENT_TRANSLATOR') ? true : false;
+            }
             $allLanguage        = $module->getAvailableLanguages($beta_language);
             if (!empty($attribute) && array_key_exists($key, $originalAttributes) && in_array($key,
                     $this->translationAttributes) && !in_array($key, $blackListAttributes)) {
@@ -621,7 +625,7 @@ class TranslateableBehavior extends Behavior
      */
     protected function getModelTranslation()
     {
-        $module = \Yii::$app->getModule('translation');
+        $module = 'Traduzioni';
         $models = (!empty($module->translationBootstrap['configuration']['translationContents']['models']) ? $module->translationBootstrap['configuration']['translationContents']['models']
                 : []);
 

@@ -275,7 +275,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         }
         $this->generateTranslationTables();
         $this->generateTranslationModels();
-        $this->name = AmosTranslation::t('amostranslation', "Translations");
+        $this->name = 'Traduzioni';
     }
 
     public function getWidgetIcons()
