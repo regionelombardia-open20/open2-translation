@@ -768,12 +768,16 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
      */
     protected function getChangeAttributes($classname)
     {
+        $modelClass       = StringHelper::basename($classname)."Translation";
+        $newClassname = $this->modelNs.'\\'.$modelClass;
+
         $table = $classname::tableName();
 
         $tableSchema            = \Yii::$app->{$this->dbSource}->getTableSchema($table, true);
         $tableSchemaTranslation = \Yii::$app->{$this->dbTranslation}->getTableSchema("{$table}__translation", true);
         $attributes             = $this->getModelAttributes($classname);
-        $attributesTranslation  = $this->getModelAttributes("{$classname}Translation", true);
+        $attributesTranslation  = $this->getModelAttributes("{$newClassname}", true);
+        unset($attributesTranslation[array_search($this->modelOwnerPlatformTrLanguageField, $attributesTranslation)]);
 
         return array_diff($attributes, $attributesTranslation);
     }

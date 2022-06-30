@@ -2,6 +2,7 @@
 
 namespace open20\amos\translation\controllers;
 
+use open20\amos\translation\AmosTranslation;
 use Yii;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
@@ -29,7 +30,7 @@ class TranslateController extends DashboardController {
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['language', 'error', 'contents', 'records', 'update', 'index', 'translators', 'user-language'],
+                        'actions' => ['language', 'error', 'contents', 'records', 'update', 'index', 'translators', 'user-language', 'force-regenerate-tables-and-models'],
                         'allow' => true,
                     ],
                 ],
@@ -81,5 +82,20 @@ class TranslateController extends DashboardController {
             return true;
         }
         return true;
+    }
+
+    /**
+     * @return \yii\web\Response
+     */
+    public function actionForceRegenerateTablesAndModels(){
+        /** @var  $module AmosTranslation */
+        $module = \Yii::$app->getModule('translation');
+        if($module){
+            $module->generateTranslationTables(true, true);
+            $module->generateTranslationModels(true);
+
+        }
+        \Yii::$app->session->addFlash('success', "Tabelle rigenerate correttamente");
+        return $this->redirect('/');
     }
 }

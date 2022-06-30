@@ -287,7 +287,7 @@ class TranslateableBehavior extends Behavior
      */
     public function setLanguage($value)
     {
-        $value = self::getMappedLanguage(strtolower($value));
+        $value = self::getMappedLanguage($value);
         if (!isset($this->_models[$value])) {
             $this->_models[$value] = $this->loadTranslation($value);
         }
@@ -680,6 +680,11 @@ class TranslateableBehavior extends Behavior
     public static function getMappedLanguage($language)
     {
         if (method_exists('open20\amos\core\i18n\MessageSource', 'getMappedLanguage')) {
+            $explode = explode('-', $language);
+            if(count($explode) != 2){
+                //evito di fare strtolower nelle lingue settate come en-GB
+                $language = strtolower($language);
+            }
             return \open20\amos\core\i18n\MessageSource::getMappedLanguage($language);
         }
         return $language;
