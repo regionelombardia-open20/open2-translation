@@ -625,7 +625,7 @@ class TranslateableBehavior extends Behavior
      */
     protected function getModelTranslation()
     {
-        $module = 'Traduzioni';
+        $module = \Yii::$app->getModule('translation');
         $models = (!empty($module->translationBootstrap['configuration']['translationContents']['models']) ? $module->translationBootstrap['configuration']['translationContents']['models']
                 : []);
 
