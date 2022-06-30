@@ -15,6 +15,7 @@ use open20\amos\translation\models\LanguageTranslateUserFields;
 use Yii;
 use yii\base\Event;
 use yii\db\ActiveRecord;
+use yii\helpers\FileHelper;
 
 /**
  * Class EventActiveRecordBootstrap
@@ -84,10 +85,29 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
     {
         $processed         = [];
         $translationModule = \Yii::$app->getModule('translation');
-        $path              = \Yii::getAlias('@'.str_replace('\\', '/', $translationModule->modelNs)).'/'."{$translationModule->fileNameDbConfFields}".'.php';
 
-        if(!is_writable($path)) {
-            throw new \Exception("La Directory {$path} non esiste o non è scrivibile, bisogna correggere manualmente il problema");
+        $dirPath = \Yii::getAlias('@'.str_replace('\\', '/', $translationModule->modelNs));
+        $path    = $dirPath.'/'."{$translationModule->fileNameDbConfFields}".'.php';
+
+        if (!is_dir($dirPath)) {
+            FileHelper::createDirectory($dirPath);
+        } else if (!is_writable($dirPath)) {
+            $ok = chmod($dirPath, 0775);
+            if (!$ok) {
+                throw new \Exception("La Directory {$dirPath} non esiste o non è scrivibile, bisogna correggere manualmente il problema");
+            }
+        }
+
+        if (!file_exists($path)) {
+            $handle = fopen($path, 'w');
+            fwrite($handle, "<?php return [];");
+            fclose($handle);
+        }
+        if (!is_writable($path)) {
+            $ok2 = chmod($path, 0775);
+            if (!$ok2) {
+                throw new \Exception("Il File {$path} non esiste o non è scrivibile, bisogna correggere manualmente il problema");
+            }
         }
 
         try {

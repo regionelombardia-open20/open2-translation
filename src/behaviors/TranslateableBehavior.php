@@ -22,6 +22,13 @@ class TranslateableBehavior extends Behavior
 {
     const DELETE_ONLY_LANGUAGE_SELECTED = 0;
     const DELETE_ALL                    = 1;
+    const MAP_LANGUAGE                  = [
+        'it' => 'it-IT',
+        'en' => 'en-GB',
+        'fr' => 'fr-FR',
+        'es' => 'es-ES',
+        'de' => 'de-DE'
+    ];
 
     /**
      * @var string the name of the translations relation
@@ -207,35 +214,45 @@ class TranslateableBehavior extends Behavior
      */
     public function afterInit($event)
     {
-        $this->loadTranslation(\Yii::$app->language);
+        $language = self::getMappedLanguage(\Yii::$app->language);
+
+        $this->loadTranslation($language);
     }
 
     /**
-     * 
+     *
      */
     public function translateOriginalValues()
     {
         $module              = \Yii::$app->getModule('translation');
         $blackListAttributes = array_merge($this->blackListAttributes, $this->systemBlackListAttributes);
         $language            = $this->getLanguage();
-        foreach ($this->getTranslation($language)->attributes as $key => $attribute) {
-            $originalAttributes = $this->owner->attributes;
-            $beta_language      = false;
-            if(\Yii::$app instanceof \yii\web\Application)
-            {    
-                $beta_language      = \Yii::$app->user->can('CONTENT_TRANSLATOR') ? true : false;
-            }
-            $allLanguage        = $module->getAvailableLanguages($beta_language);
-            if (!empty($attribute) && array_key_exists($key, $originalAttributes) && in_array($key,
-                    $this->translationAttributes) && !in_array($key, $blackListAttributes)) {
-                $this->owner->$key = $attribute;
-            } else if (!empty($module->defaultTranslationLanguage) && empty($attribute) && array_key_exists($key,
-                    $originalAttributes) && in_array($key, $this->translationAttributes) && !in_array($key,
-                    $blackListAttributes) && (empty($module->defaultLanguage) || (strcasecmp($module->defaultLanguage,
-                    $language) != 0))) {
-                $defaultTranslationAttributes = $this->getTranslation($module->defaultTranslationLanguage);
-                if (!empty($defaultTranslationAttributes) && !empty($defaultTranslationAttributes->$key)) {
-                    $this->owner->$key = $defaultTranslationAttributes->$key;
+        $beta_language       = false;
+        if (\Yii::$app instanceof \yii\web\Application) {
+            $beta_language = \Yii::$app->user->can('CONTENT_TRANSLATOR') ? true : false;
+        }
+        $allLanguage = $module->getAvailableLanguages($beta_language);
+
+        if (array_key_exists($language, $allLanguage)) {
+            $language = self::getMappedLanguage(\Yii::$app->language);
+
+            foreach ($this->getTranslation($language)->attributes as $key => $attribute) {
+
+                $originalAttributes = $this->owner->attributes;
+
+                //	print_r(!empty($attribute));print_r("<br>");print_r(array_key_exists($key, $originalAttributes));print_r("<br>");print_r(in_array($key,
+                //           $this->translationAttributes));print_r("<br>");print_r(!in_array($key, $blackListAttributes));die;
+                if (!empty($attribute) && array_key_exists($key, $originalAttributes) && in_array($key,
+                        $this->translationAttributes) && !in_array($key, $blackListAttributes)) {
+                    $this->owner->$key = $attribute;
+                } else if (!empty($module->defaultTranslationLanguage) && empty($attribute) && array_key_exists($key,
+                        $originalAttributes) && in_array($key, $this->translationAttributes) && !in_array($key,
+                        $blackListAttributes) && (empty($module->defaultLanguage) || (strcasecmp($module->defaultLanguage,
+                        $language) != 0))) {
+                    $defaultTranslationAttributes = $this->getTranslation($module->defaultTranslationLanguage);
+                    if (!empty($defaultTranslationAttributes) && !empty($defaultTranslationAttributes->$key)) {
+                        $this->owner->$key = $defaultTranslationAttributes->$key;
+                    }
                 }
             }
         }
@@ -264,10 +281,11 @@ class TranslateableBehavior extends Behavior
      */
     public function setLanguage($value)
     {
-        $value = strtolower($value);
+        $value = self::getMappedLanguage(strtolower($value));
         if (!isset($this->_models[$value])) {
             $this->_models[$value] = $this->loadTranslation($value);
         }
+
         $this->_language = $value;
     }
 
@@ -284,6 +302,9 @@ class TranslateableBehavior extends Behavior
                 $this->_language = $this->defaultLanguage;
             }
         }
+        if (!empty($this->_language)) {
+            $this->_language = self::getMappedLanguage($this->_language);
+        }
         return $this->_language;
     }
 
@@ -294,16 +315,17 @@ class TranslateableBehavior extends Behavior
      */
     public function saveTranslation($save = true)
     {
-        $delete          = $this->owner->deleted_by;
-        $languages       = [];
-        $module          = \Yii::$app->getModule('translation');
-        $result          = true;
-        $languages       = \open20\amos\translation\models\TranslationConf::getStaticAllActiveLanguages($module->byPassPermissionInlineTranslation)->asArray()->all();
-        $defaultLanguage = (!empty($this->defaultLanguage) ? $this->defaultLanguage : null);
+        $platformLanguage = self::getMappedLanguage(\Yii::$app->language);
+        $delete           = $this->owner->deleted_by;
+        $languages        = [];
+        $module           = \Yii::$app->getModule('translation');
+        $result           = true;
+        $languages        = \open20\amos\translation\models\TranslationConf::getStaticAllActiveLanguages($module->byPassPermissionInlineTranslation)->asArray()->all();
+        $defaultLanguage  = (!empty($this->defaultLanguage) ? $this->defaultLanguage : null);
         if ($delete) {
             if ($this->afterDeleteSource == self::DELETE_ONLY_LANGUAGE_SELECTED) {
                 $languages                  = [];
-                $languages[]['language_id'] = \Yii::$app->language;
+                $languages[]['language_id'] = $platformLanguage;
             }
         }
         $classOwner = StringHelper::basename(get_class($this->owner));
@@ -378,7 +400,7 @@ class TranslateableBehavior extends Behavior
                 $result = $result && $ret;
             } else {
                 $this->rollbackSource($model, $dirty, $defaultLanguage);
-                if (\Yii::$app->language == $language) {
+                if ($platformLanguage == $language) {
                     // pr($language,'language');
                     try {
                         $model->setIsNewRecord(true);
@@ -422,7 +444,8 @@ class TranslateableBehavior extends Behavior
      */
     private function rollbackSource($model, $dirty, $defaultLanguage = null)
     {
-        if (\Yii::$app->language != $defaultLanguage || $defaultLanguage == null) {
+        $language = self::getMappedLanguage(\Yii::$app->language);
+        if ($language != $defaultLanguage || $defaultLanguage == null) {
             if (!empty($dirty) && !is_null($this->owner)) {
                 $module     = \Yii::$app->getModule('translation');
                 $classOwner = get_class($this->owner);
@@ -564,6 +587,7 @@ class TranslateableBehavior extends Behavior
                 $translation = $class::find()->andWhere(
                     [$this->languageField => $language, key($relation->link) => $this->owner->getPrimarykey()]
                 );
+
                 if ($module->cached) {
                     $translation = CachedActiveQuery::instance($translation);
                     $translation->cache($module->cacheDuration, $module->queryCache);
@@ -637,5 +661,18 @@ class TranslateableBehavior extends Behavior
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @param string $language
+     * @return string
+     */
+    public static function getMappedLanguage($language)
+    {
+        if (method_exists('open20\amos\core\i18n\MessageSource', 'getMappedLanguage')) {
+            return \open20\amos\core\i18n\MessageSource::getMappedLanguage($language);
+        }
+        return $language;
     }
 }
