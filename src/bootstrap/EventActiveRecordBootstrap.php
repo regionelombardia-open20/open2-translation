@@ -86,6 +86,10 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
         $translationModule = \Yii::$app->getModule('translation');
         $path              = \Yii::getAlias('@'.str_replace('\\', '/', $translationModule->modelNs)).'/'."{$translationModule->fileNameDbConfFields}".'.php';
 
+        if(!is_writable($path)) {
+            throw new \Exception("La Directory {$path} non esiste o non è scrivibile, bisogna correggere manualmente il problema");
+        }
+
         try {
 
             if (!file_exists($path)) {

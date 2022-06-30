@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Aria S.p.A.
- * OPEN 2.0
- *
- *
- * @package    Open20Package
- * @category   CategoryName
- */
-
 use yii\bootstrap\Progress;
 use open20\amos\core\helpers\Html;
 use yii\helpers\StringHelper;

@@ -205,7 +205,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public $components                       = [];
     public $dbTranslation                    = 'db';
     public $dbSource                         = 'db';
-    public $defaultTypeAttributesToTranslate = ['string', 'text'];
+    public $defaultTypeAttributesToTranslate = ['string', 'text', 'char'];
     public $systemBlackListAttributes        = ['id', 'status', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by',
         'deleted_by'];
 
@@ -275,12 +275,13 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         }
         $this->generateTranslationTables();
         $this->generateTranslationModels();
+        $this->name = AmosTranslation::t('amostranslation', "Translations");
     }
 
     public function getWidgetIcons()
     {
         return [
-            widgets\icons\WidgetIconTranslation::className(),
+//            widgets\icons\WidgetIconTranslation::className(),
             widgets\icons\WidgetIconTrContents::className(),
             widgets\icons\WidgetIconTrPlatform::className(),
             //widgets\icons\WidgetIconTrLanguage::className(),//will to ability when the view of the translate of platform are completed
@@ -625,7 +626,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         $files          = [];
         $workflow       = 'AmosTranslationWorkflow';
         $enableWorkflow = false;
-        if (\Yii::$app->db->getTableSchema(models\TranslationConf::tableName(), false) !== null) {
+        if (\Yii::$app->db->getTableSchema(models\TranslationConf::tableName()) !== null) {
             $verifyModels = models\TranslationConf::find();
             if ($force == false) {
                 $verifyModels->andWhere(['model_generated' => 0]);
@@ -650,7 +651,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
                     $modelClass       = StringHelper::basename($namespace)."Translation";
                     $table            = $namespace::tableName();
                     $tableTranslation = "{$table}__translation";
-                    $tableSchema      = \Yii::$app->{$this->dbTranslation}->getTableSchema($tableTranslation);
+                    $tableSchema      = \Yii::$app->{$this->dbTranslation}->getTableSchema($tableTranslation, true);
 
                     if (!empty($tableSchema)) {
                         $generator                     = new components\Generator();
@@ -703,17 +704,17 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         $result = false;
         try {
             $connection = \Yii::$app->{$this->dbTranslation};
-            //$connection->enableQueryCache  = false;
-            //$connection->enableSchemaCache = false;
+            // $connection->enableQueryCache  = false;
+            // $connection->enableSchemaCache = true;
             $table      = $classname::tableName();
 
-            if (\Yii::$app->{$this->dbTranslation}->getTableSchema("{$table}__translation") === NULL) {
+            if (\Yii::$app->{$this->dbTranslation}->getTableSchema("{$table}__translation", false) === NULL) {
 
                 $sql .= "CREATE TABLE `{$table}__translation` (
                     `{$table}_id` int(11) NOT NULL,
                     `{$this->languageField}` VARCHAR(255) NOT NULL,";
 
-                $tableSchema = \Yii::$app->{$this->dbSource}->getTableSchema($table);
+                $tableSchema = \Yii::$app->{$this->dbSource}->getTableSchema($table, true);
 
                 if (!empty($this->defaultTypeAttributesToTranslate) && !empty($tableSchema)) {
                     foreach ((array) $tableSchema->columns as $key => $value) {
@@ -769,8 +770,8 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     {
         $table = $classname::tableName();
 
-        $tableSchema            = \Yii::$app->{$this->dbSource}->getTableSchema($table);
-        $tableSchemaTranslation = \Yii::$app->{$this->dbTranslation}->getTableSchema("{$table}__translation");
+        $tableSchema            = \Yii::$app->{$this->dbSource}->getTableSchema($table, true);
+        $tableSchemaTranslation = \Yii::$app->{$this->dbTranslation}->getTableSchema("{$table}__translation", true);
         $attributes             = $this->getModelAttributes($classname);
         $attributesTranslation  = $this->getModelAttributes("{$classname}Translation", true);
 
@@ -781,7 +782,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     {
         $table       = $classname::tableName();
         $db          = ($translation ? $this->dbTranslation : $this->dbSource);
-        $tableSchema = \Yii::$app->{$db}->getTableSchema($table);
+        $tableSchema = \Yii::$app->{$db}->getTableSchema($table, true);
         $attributes  = [];
         if (!empty($this->defaultTypeAttributesToTranslate) && !empty($tableSchema)) {
             foreach ((array) $tableSchema->columns as $key => $value) {

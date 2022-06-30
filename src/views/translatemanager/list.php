@@ -1,15 +1,5 @@
 <?php
-
 /**
- * Aria S.p.A.
- * OPEN 2.0
- *
- *
- * @package    Open20Package
- * @category   CategoryName
- */
-/**
- * @author Lajos Molnár <lajax.m@gmail.com>
  *
  * @since 1.0
  */

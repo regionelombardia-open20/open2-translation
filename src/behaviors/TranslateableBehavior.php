@@ -137,7 +137,7 @@ class TranslateableBehavior extends Behavior
         $this->setLanguage(\Yii::$app->language);
         $this->populateTranslations();
         $this->getTranslation($this->getLanguage());
-        if ($this->forceTranslation) {
+        if ($this->forceTranslation && !empty(\Yii::$app->controller)) {
             $viewPath      = \Yii::$app->controller->getViewPath();
             $currentAction = (!empty($viewPath) ? trim($viewPath) : '').DIRECTORY_SEPARATOR.(!empty(\Yii::$app->controller->action->id)
                     ? trim(\Yii::$app->controller->action->id) : '');
