@@ -253,6 +253,19 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
     public $modelOwnerPlatformTrLanguageField = 'language';
     public $availableLanguages                = null;
 
+    /**
+     * If set to true it forces the verification and possible modification of the tables  (put empty file
+     * force_tables.log in @common/uploads/temp)
+     * @var bool
+     */
+    public $forceTables = false;
+
+    /**
+     * If set to true it forces the regeneration of the models (put empty file force_models.log in @common/uploads/temp)
+     * @var bool
+     */
+    public $forceModels = false;
+
     public static function getModuleName()
     {
         return "translation";
@@ -268,13 +281,25 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
         $this->configTranslationLabelsByModules();
         $this->module_translation_labels_options = $this->getModuleTranslationLabelsOptions();
 
-
         \Yii::$app->setModule($this->module_translation_labels, $this->module_translation_labels_options);
         if (\Yii::$app instanceof Application) {
             \Yii::$app->setComponents($this->components);
         }
-        $this->generateTranslationTables();
-        $this->generateTranslationModels();
+        $pathTables = realpath(\Yii::getAlias('@common/uploads/temp')).DIRECTORY_SEPARATOR.'force_tables.log';
+        $pathModels = realpath(\Yii::getAlias('@common/uploads/temp')).DIRECTORY_SEPARATOR.'force_models.log';
+        if (file_exists($pathTables)) {
+            $this->forceTables = true;
+            unlink($pathTables);
+        }
+        if (file_exists($pathModels)) {
+            $this->forceModels = true;
+            unlink($pathModels);
+        }
+        $this->generateTranslationTables($this->forceTables, $this->forceModels);
+        $this->generateTranslationModels($this->forceModels);
+        $this->forceTables = false;
+        $this->forceModels = false;
+
         $this->name = 'Traduzioni';
     }
 
@@ -768,7 +793,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
      */
     protected function getChangeAttributes($classname)
     {
-        $modelClass       = StringHelper::basename($classname)."Translation";
+        $modelClass   = StringHelper::basename($classname)."Translation";
         $newClassname = $this->modelNs.'\\'.$modelClass;
 
         $table = $classname::tableName();
