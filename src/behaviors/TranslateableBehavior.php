@@ -147,7 +147,8 @@ class TranslateableBehavior extends Behavior
      */
     public function afterFind($event)
     {
-        $this->setLanguage(\Yii::$app->language);
+        $appLanguage = self::getMappedLanguage(\Yii::$app->language);
+        $this->setLanguage($appLanguage);
         $this->populateTranslations();
         $this->getTranslation($this->getLanguage());
         if ($this->forceTranslation && !empty(\Yii::$app->controller)) {
@@ -245,9 +246,7 @@ class TranslateableBehavior extends Behavior
             foreach ($this->getTranslation($language)->attributes as $key => $attribute) {
 
                 $originalAttributes = $this->owner->attributes;
-
-                //	print_r(!empty($attribute));print_r("<br>");print_r(array_key_exists($key, $originalAttributes));print_r("<br>");print_r(in_array($key,
-                //           $this->translationAttributes));print_r("<br>");print_r(!in_array($key, $blackListAttributes));die;
+              
                 if (!empty($attribute) && array_key_exists($key, $originalAttributes) && in_array($key,
                         $this->translationAttributes) && !in_array($key, $blackListAttributes)) {
                     $this->owner->$key = $attribute;
@@ -450,7 +449,8 @@ class TranslateableBehavior extends Behavior
      */
     private function rollbackSource($model, $dirty, $defaultLanguage = null)
     {
-        if ($model->language == $defaultLanguage && (\Yii::$app->language != $defaultLanguage || $defaultLanguage == null)
+        $appLanguage = self::getMappedLanguage(\Yii::$app->language);
+        if ($model->language == $defaultLanguage && ($appLanguage != $defaultLanguage || $defaultLanguage == null)
             && $this->rollbackOk == false) {
             if (!empty($dirty) && !is_null($this->owner)) {
 

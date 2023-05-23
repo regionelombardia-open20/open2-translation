@@ -119,7 +119,7 @@ class TranslationConf extends \open20\amos\core\record\Record
     public static function getStaticAllActiveLanguages($force = false, $namespace = null, $status_beta = true)
     {
         if ($force || \Yii::$app->authManager->checkAccess(\Yii::$app->getUser()->getId(), 'TRANSLATE_MANAGER')) {
-            if ($status_beta === true && \Yii::$app->user->can('CONTENT_TRANSLATOR')) {
+            if ($status_beta === true && \Yii::$app->authManager->checkAccess(\Yii::$app->getUser()->getId(), 'CONTENT_TRANSLATOR')) {
                 $ret = \lajax\translatemanager\models\Language::find()->andWhere(['>=', 'status', 1]);
             } else {
                 $ret = \lajax\translatemanager\models\Language::find()->andWhere(['status' => 1]);

@@ -45,7 +45,7 @@ class AmosTranslation extends AmosModule implements BootstrapInterface
      * It set the language source, if is set every saved record is copied in the translation language default
      * @var type $defaultLanguage
      */
-    public $defaultLanguage;
+    public $defaultLanguage = 'it-IT';
 
     /**
      * If is set it sets the translation language when the translation request is not present

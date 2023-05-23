@@ -125,6 +125,10 @@ class DefaultController extends Controller
         }
     }
 
+    /**
+     * @deprecated since version 1.3.0
+     * @return type
+     */
     public function actionContents()
     {
         $model = new TranslationConf();
@@ -146,6 +150,10 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     * @deprecated since version 1.3.0
+     * @return type
+     */
     public function actionTranslators()
     {
         $model = UserProfile::find()
@@ -213,6 +221,7 @@ class DefaultController extends Controller
     }
 
     /**
+     * @deprecated since version 1.3.0
      * @param $namespace
      * @param $lang
      * @return string
@@ -320,6 +329,15 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     * @deprecated since version 1.3.0
+     * @param type $id
+     * @param type $lang
+     * @param type $namespace
+     * @param type $url
+     * @return type
+     * @throws ForbiddenHttpException
+     */
     public function actionUpdate($id, $lang, $namespace, $url = null)
     {
         if (!\Yii::$app->getUser()->can('TRANSLATOR', ['model' => new TranslationUserLanguageMm(), 'language' => $lang])) {
@@ -385,6 +403,14 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     *
+     * @param type $id
+     * @param type $lang
+     * @param type $namespace
+     * @param type $url
+     * @return type
+     */
     public function actionViewTr($id, $lang, $namespace, $url = null)
     {
         $module          = \Yii::$app->controller->module;
@@ -443,6 +469,11 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     *
+     * @param type $lang
+     * @return type
+     */
     private function verifyLang($lang)
     {
         $module = \Yii::$app->controller->module;

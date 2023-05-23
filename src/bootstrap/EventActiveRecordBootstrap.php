@@ -15,7 +15,7 @@ use open20\amos\translation\models\LanguageTranslateUserFields;
 use Yii;
 use yii\base\Event;
 use yii\db\ActiveRecord;
-use yii\helpers\FileHelper;
+use open20\amos\translation\behaviors\TranslateableBehavior;
 
 /**
  * Class EventActiveRecordBootstrap
@@ -24,6 +24,11 @@ use yii\helpers\FileHelper;
 class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
 {
     private $configuration;
+    private static $_check_path;
+    private static $_configuration;
+    private static $_content_configuration;
+    private static $_all_attributes;
+    private $translationModule;
 
     /**
      * Application-specific roles initialization
@@ -31,13 +36,16 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
      */
     public function init()
     {
-        $this->configuration = \Yii::$app->getModule('translation')->translationBootstrap;
+        $this->translationModule = AmosTranslation::instance();
+        if (empty(self::$_configuration)) {
+            self::$_configuration = $this->translationModule->translationBootstrap;
+        }
+
 
         \yii\base\Event::on(\yii\db\ActiveRecord::className(), self::EVENT_INIT, [$this, 'onEventInit']);
 
         /** @var AmosTranslation $translationModule */
-        $translationModule = Yii::$app->getModule(AmosTranslation::getModuleName());
-        Event::on($translationModule->modelOwnerPlatformTranslation, ActiveRecord::EVENT_BEFORE_UPDATE,
+        Event::on($this->translationModule->modelOwnerPlatformTranslation, ActiveRecord::EVENT_BEFORE_UPDATE,
             [$this, 'setTranslationOwner']);
 
         parent::init();
@@ -50,8 +58,13 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
     public function onEventInit($event)
     {
         $this->initConfigurationLabels();
-        $this->enableTranslationContents($event);
-        $this->enableTranslationLabels($event);
+        $appLanguage = TranslateableBehavior::getMappedLanguage(\Yii::$app->language);
+        if (empty($event->sender->getBehavior('translationContents'))) {
+            $this->enableTranslationContents($event);
+        }
+        if (empty($event->sender->getBehavior('translationLabels'))) {
+            $this->enableTranslationLabels($event);
+        }
     }
 
     /**
@@ -61,7 +74,7 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
     {
         if (Yii::$app instanceof \yii\web\Application && !Yii::$app->user->isGuest && !empty($event->sender->dirtyAttributes)) {
             /** @var AmosTranslation $translationModule */
-            $translationModule = Yii::$app->getModule(AmosTranslation::getModuleName());
+            $translationModule = $this->translationModule;
             $now               = date('Y-m-d H:i:s');
             $loggedUserId      = Yii::$app->user->id;
             $ltUserFields      = LanguageTranslateUserFields::findOne([
@@ -83,8 +96,11 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
 
     public function initConfigurationLabels()
     {
+        if (!empty(self::$_check_path)) {
+            return;
+        }
         $processed         = [];
-        $translationModule = \Yii::$app->getModule('translation');
+        $translationModule = $this->translationModule;
 
         $dirPath = \Yii::getAlias('@'.str_replace('\\', '/', $translationModule->modelNs));
         $path    = $dirPath.'/'."{$translationModule->fileNameDbConfFields}".'.php';
@@ -142,11 +158,12 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
                         }
                     }
                 }
-                $fileContent   = file_get_contents($path);
-                $configuration = str_replace($placeholder, $conf, $fileContent);
-                $handle2       = fopen($path, 'wb');
+                $fileContent       = file_get_contents($path);
+                $configuration     = str_replace($placeholder, $conf, $fileContent);
+                $handle2           = fopen($path, 'wb');
                 fwrite($handle2, $configuration);
                 fclose($handle2);
+                self::$_check_path = 1;
             }
         } catch (\Exception $e) {
             \Yii::trace("Error in the configuration of the db fields translation", __METHOD__);
@@ -159,8 +176,8 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
      */
     public function enableTranslationLabels($event)
     {
-        if (!empty($this->configuration['configuration']['translationLabels'])) {
-            $translationLabels = $this->configuration['configuration']['translationLabels'];
+        if (!empty(self::$_configuration['configuration']['translationLabels'])) {
+            $translationLabels = self::$_configuration['configuration']['translationLabels'];
 
             if (!empty($translationLabels['classBehavior']) && !empty($translationLabels['models']) && !empty(\Yii::$app->getModule('translatemanager'))) {
                 foreach ($translationLabels['models'] as $model) {
@@ -170,10 +187,10 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
 
                             $event->sender->attachBehavior('translationLabels',
                                 [
-                                'class' => (isset($model['classBehavior']) ? $model['classBehavior'] : $translationLabels['classBehavior']),
-                                'translateAttributes' => $model['attributes'],
-                                'category' => (!empty($model['category']) ? $model['category'] : (null != ($event->sender->tableName())
-                                            ? $event->sender->tableName() : 'database')),
+                                    'class' => (isset($model['classBehavior']) ? $model['classBehavior'] : $translationLabels['classBehavior']),
+                                    'translateAttributes' => $model['attributes'],
+                                    'category' => (!empty($model['category']) ? $model['category'] : (null != ($event->sender->tableName())
+                                                ? $event->sender->tableName() : 'database')),
                             ]);
                         }
                     }
@@ -188,9 +205,10 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
      */
     private function enableTranslationContents($event)
     {
-        if (!empty($this->configuration['configuration']['translationContents'])) {
-            $translationContents = $this->configuration['configuration']['translationContents'];
-            if (!empty($translationContents['classBehavior']) && !empty($translationContents['models']) && !empty(\Yii::$app->getModule('translation'))) {
+        if (!empty(self::$_configuration['configuration']['translationContents'])) {
+
+            $translationContents = self::$_configuration['configuration']['translationContents'];
+            if (!empty($translationContents['classBehavior']) && !empty($translationContents['models']) && !empty($this->translationModule)) {
                 foreach ($translationContents['models'] as $model) {
                     if (!empty($model['namespace']) && !empty($model['attributes'])) {
                         $classSender = get_class($event->sender);
@@ -212,10 +230,13 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
      */
     private function setTranslationContentsConfiguration($model, $sender)
     {
+        if (!empty(self::$_content_configuration[$model['namespace']])) {
+            return self::$_content_configuration[$model['namespace']];
+        }
         $configuration = [];
         try {
-            $module                                 = \Yii::$app->getModule('translation');
-            $configuration['class']                 = (isset($model['classBehavior']) ? $model['classBehavior'] : $this->configuration['configuration']['translationContents']['classBehavior']);
+            $module                                 = $this->translationModule;
+            $configuration['class']                 = (isset($model['classBehavior']) ? $model['classBehavior'] : self::$_configuration['configuration']['translationContents']['classBehavior']);
             $configuration['translationAttributes'] = (!empty($model['attributes']) ? $model['attributes'] : $this->getAllAttributes($sender));
             $configuration['defaultLanguage']       = (!empty($model['defaultLanguage']) ? $model['defaultLanguage'] : $module->defaultLanguage);
             $configuration['forceTranslation']      = (!empty($model['forceTranslation']) ? $model['forceTranslation'] : $module->forceTranslation);
@@ -234,7 +255,8 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
                 $configuration['statusWorkflowInitial']  = $statusWorkflowInitial;
                 $configuration['workflow']               = (!empty($model['workflow']) ? $model['workflow'] : 'AmosTranslationWorkflow');
             }
-            return $configuration;
+            self::$_content_configuration[$model['namespace']] = $configuration;
+            return self::$_content_configuration[$model['namespace']];
         } catch (\Exception $ex) {
             \Yii::$app->getSession()->addFlash('danger',
                 Yii::t('amostranslation', 'Configuration of the plugin Translation is not set correctly.'));
@@ -242,17 +264,20 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
                 pr($ex->getMessage());
                 die;
             }
-            return $configuration;
+            return null;
         }
     }
 
     protected function getAllAttributes($sender)
     {
+        if (!empty(self::$_all_attributes[get_class($sender)])) {
+            return self::$_all_attributes[get_class($sender)];
+        }
         $attributes                       = [];
         $classname                        = get_class($sender);
         $table                            = $classname::tableName();
-        $dbSource                         = \Yii::$app->getModule('translation')->dbSource;
-        $defaultTypeAttributesToTranslate = \Yii::$app->getModule('translation')->defaultTypeAttributesToTranslate;
+        $dbSource                         = $this->translationModule->dbSource;
+        $defaultTypeAttributesToTranslate = $this->translationModule->defaultTypeAttributesToTranslate;
         $tableSchema                      = \Yii::$app->$dbSource->getTableSchema($table);
         if (!empty($defaultTypeAttributesToTranslate)) {
             foreach ((array) $tableSchema->columns as $key => $value) {
@@ -261,6 +286,7 @@ class EventActiveRecordBootstrap extends \yii\db\ActiveRecord
                 }
             }
         }
-        return $attributes;
+        self::$_all_attributes[get_class($sender)] = $attributes;
+        return self::$_all_attributes[get_class($sender)];
     }
 }
