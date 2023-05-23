@@ -30,6 +30,8 @@ class TranslateableBehavior extends Behavior
         'de' => 'de-DE'
     ];
 
+    private static $_configuration;
+
     /**
      * @var string the name of the translations relation
      */
@@ -246,7 +248,7 @@ class TranslateableBehavior extends Behavior
             foreach ($this->getTranslation($language)->attributes as $key => $attribute) {
 
                 $originalAttributes = $this->owner->attributes;
-              
+
                 if (!empty($attribute) && array_key_exists($key, $originalAttributes) && in_array($key,
                         $this->translationAttributes) && !in_array($key, $blackListAttributes)) {
                     $this->owner->$key = $attribute;
@@ -347,9 +349,7 @@ class TranslateableBehavior extends Behavior
             $model    = $this->getTranslation($language, $save);
             $model    = $this->loadAttributes($model);
             $dirty    = $model->getDirtyAttributes();
-            if (empty($dirty) && !$delete) {
-                return true; // we do not need to save anything
-            }
+            
             try {
                 if (!method_exists(get_class($this->owner), $this->relation)) {
                     $notExistTranslation = true;
@@ -450,12 +450,13 @@ class TranslateableBehavior extends Behavior
     private function rollbackSource($model, $dirty, $defaultLanguage = null)
     {
         $appLanguage = self::getMappedLanguage(\Yii::$app->language);
-        if ($model->language == $defaultLanguage && ($appLanguage != $defaultLanguage || $defaultLanguage == null)
-            && $this->rollbackOk == false) {
-            if (!empty($dirty) && !is_null($this->owner)) {
+        if ($model->language == $defaultLanguage && ($appLanguage != $defaultLanguage || $defaultLanguage == null) && $this->rollbackOk
+            == false) {
+            if (!is_null($this->owner)) {
 
                 $module     = \Yii::$app->getModule('translation');
                 $classOwner = get_class($this->owner);
+                $basename   = \yii\helpers\StringHelper::basename($classOwner);
                 $idOwner    = $this->owner->id;
                 $oldModel   = $classOwner::findOne(['id' => $idOwner]);
                 $oldModel->detachBehaviors();
@@ -466,9 +467,25 @@ class TranslateableBehavior extends Behavior
                     $model->oldAttributes = $model->attributes;
                 }
 
-                foreach ($dirty as $k => $v) {
-                    if (!in_array($k, $pkModel)) {
-                        $oldModel->{$k} = $model->oldAttributes[$k];
+                if (!empty($dirty)) {
+                    foreach ($dirty as $k => $v) {
+                        if (!in_array($k, $pkModel)) {
+                            $oldModel->{$k} = $model->oldAttributes[$k];
+                        }
+                    }
+                } else {
+                    if (empty(self::$_configuration[$basename])) {
+                        if (!empty($module->translationBootstrap['configuration']['translationContents']['models'])) {
+                            $models = $module->translationBootstrap['configuration']['translationContents']['models'];
+                            foreach ($models as $conf) {
+                                self::$_configuration[\yii\helpers\StringHelper::basename($conf['namespace'])] = $conf['attributes'];
+                            }
+                        }
+                    }
+                    if (!empty(self::$_configuration[$basename])) {
+                        foreach (self::$_configuration[$basename] as $k) {
+                            $oldModel->{$k} = $model->oldAttributes[$k];
+                        }
                     }
                 }
 
@@ -665,8 +682,8 @@ class TranslateableBehavior extends Behavior
         foreach ($models as $model) {
             if (!empty($model['namespace']) && !empty($model['attributes'])) {
                 if (get_class($this->owner) == $model['namespace']) {
-                    $configuration = $this->setTranslationContentsConfiguration($model, $event->sender);
-                    $event->sender->attachBehavior('translationContents', $configuration);
+                    $configuration = $this->setTranslationContentsConfiguration($model, $this->owner);
+                    $this->owner->attachBehavior('translationContents', $configuration);
                 }
             }
         }
@@ -681,7 +698,7 @@ class TranslateableBehavior extends Behavior
     {
         if (method_exists('open20\amos\core\i18n\MessageSource', 'getMappedLanguage')) {
             $explode = explode('-', $language);
-            if(count($explode) != 2){
+            if (count($explode) != 2) {
                 //evito di fare strtolower nelle lingue settate come en-GB
                 $language = strtolower($language);
             }

@@ -14,6 +14,7 @@ use Yii;
 use yii\gii\CodeFile;
 use yii\helpers\Inflector;
 use yii\db\Schema;
+use yii\base\NotSupportedException;
 
 class Generator extends \yii\gii\generators\model\Generator
 {

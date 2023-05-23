@@ -410,7 +410,15 @@ class TranslationConf extends \open20\amos\core\record\Record
         return $attributes;
     }
 
-    public static function getSource($get_lang = null, $id, $lang, $namespace)
+    /**
+     * 
+     * @param string $get_lang
+     * @param int $id
+     * @param string $lang
+     * @param string $namespace
+     * @return array
+     */
+    public static function getSource($get_lang, $id, $lang, $namespace)
     {
         $module         = \Yii::$app->getModule('translation');
         $classNameTrans = $module->modelNs.'\\'.StringHelper::basename($namespace)."Translation";
