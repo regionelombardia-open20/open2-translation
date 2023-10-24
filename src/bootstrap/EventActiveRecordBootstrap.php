@@ -16,6 +16,7 @@ use Yii;
 use yii\base\Event;
 use yii\db\ActiveRecord;
 use open20\amos\translation\behaviors\TranslateableBehavior;
+use yii\helpers\FileHelper;
 
 /**
  * Class EventActiveRecordBootstrap
