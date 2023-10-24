@@ -72,10 +72,26 @@ class DefaultController extends Controller
         return $this->redirect(['/translation/translate/index']);
     }
 
+    public function filterLanguage($data){
+        if(!empty($data)) {
+            $matchedData = [];
+            $okMatch = preg_match('/[a-z][a-z]\-[A-Z][A-Z]|[a-z][a-z]/', $data, $matchedData);
+            if ($okMatch) {
+                if (!empty($matchedData[0])) {
+                    $data = $matchedData[0];
+                }
+            }
+        }
+        return $data;
+    }
+
     public function actionLanguage()
     {
         $data    = Yii::$app->request->post();
         $dataGet = Yii::$app->request->get();
+
+        $data['language'] = $this->filterLanguage($data['language']);
+        $dataGet['language'] = $this->filterLanguage($dataGet['language']);
 
         if (!empty($data['language'])) {
             \Yii::$app->language = $data['language'];
